@@ -772,6 +772,49 @@ body.guest #accName:before{font-size:13px}
 .mini.ok{background:#d9f3e4;border-color:#9fd8b6;color:#1f7a4f}
 .mini.no{background:#fde0e4;border-color:#f2a7b4;color:#b23a50}
 .adm-side .an b{white-space:nowrap}
+
+/* Bài đọc: xem cả bài */
+.rfull{display:block}
+.rf-text{background:#fff;border:2px solid var(--line);border-radius:22px;padding:22px 26px;font-size:24px;line-height:2.3}
+.rf-text p{margin:0 0 14px;text-indent:2em}
+.rf-text p:last-child{margin-bottom:0}
+.sf{cursor:pointer;border-radius:8px;transition:background .15s;padding:2px 0}
+.sf:hover{background:var(--p-softer)}
+.sf.play{background:var(--p-soft);box-shadow:0 0 0 3px var(--p-soft)}
+.rf-vi{background:#fff;border:2px dashed var(--line);border-radius:18px;padding:16px 20px;margin-top:12px;line-height:1.8;font-size:15px}
+.rf-vi p{margin:0 0 10px}
+.sfv.play{background:#fff4d6;border-radius:6px}
+.rf-panel{position:sticky;bottom:84px;margin-top:12px;background:#fff;border:2px solid var(--p);border-radius:20px;padding:12px 16px;box-shadow:0 10px 28px rgba(90,80,160,.18);z-index:5}
+.rf-panel .zhs{font-size:22px;margin-top:4px}
+.rf-panel .vi{color:var(--muted,#667);margin-top:4px}
+.rf-panel.m-han rt{visibility:hidden}
+.rf-panel.m-kw .w:not(.kw):not(.ph) rt{visibility:hidden}
+@media(max-width:700px){.rf-text{font-size:20px;padding:16px;line-height:2.2}.rf-panel{bottom:70px}}
+
+.rf-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.rf-bar select{border:2px solid var(--line);border-radius:12px;padding:7px 10px;background:#fff;font:inherit}
+.rf-bar .btn.on{background:#fde0e4;border-color:#f2a7b4;color:#b23a50}
+.rf-status{background:#fffaf0;border:2px solid #f0c96a;border-radius:16px;padding:10px 14px;margin-bottom:10px;font-size:14px;line-height:1.7}
+.sf.turn{background:#fff4d6;box-shadow:0 0 0 3px #f6dc94}
+.sf.good{background:#d9f3e4}.sf.okk{background:#fff1c7}.sf.bad{background:#fde0e4}
+.lg{padding:1px 8px;border-radius:6px;font-weight:600}.lg.good{background:#d9f3e4}.lg.okk{background:#fff1c7}.lg.bad{background:#fde0e4}
+
+.dict{background:#fff;border:2px solid var(--line);border-radius:20px;padding:14px 16px}
+.dict-dots{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;max-height:96px;overflow:auto}
+.dict-dots button{min-width:30px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.dict-dots button.on{border-color:var(--p-dark);box-shadow:0 0 0 2px var(--p-soft)}
+.dict-dots button.g{background:#d9f3e4}.dict-dots button.y{background:#fff1c7}.dict-dots button.r{background:#fde0e4}
+.dict-ans{font-size:22px;line-height:1.7;background:var(--p-softer);border-radius:14px;padding:8px 12px;margin-top:6px}
+.dk-ok{color:#1f7a4f}.dk-no{color:#c2334d;text-decoration:underline wavy #e88a9b;text-underline-offset:4px}
+.dict-score{display:inline-block;font-weight:700;border-radius:10px;padding:3px 10px}
+.dict-score.g{background:#d9f3e4;color:#1f7a4f}.dict-score.y{background:#fff1c7;color:#8a6408}.dict-score.r{background:#fde0e4;color:#b23a50}
+
+.tr-src{font-size:22px;line-height:1.9;background:var(--p-softer);border-radius:14px;padding:10px 14px;margin-top:10px}
+.tr-hint{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tr-ans{background:#fff;border:2px dashed var(--line);border-radius:14px;padding:10px 14px;margin-top:10px}
+.dict-dots button.t{background:#eef0ff}
+.tr-all{max-height:340px;overflow:auto;line-height:2.1;font-size:20px}
+.tr-all .sf.play{background:var(--p-soft);border-radius:6px}
 </style>
 </head>
 <body>
@@ -1092,7 +1135,7 @@ function route(){
   document.body.classList.toggle("admin-mode",v==="admin");
   renderLocks();
   if(v==="write") renderWriting($("#writeBody"),{});
-  if(v!=="story") stopStory();
+  if(v!=="story"){ stopStory(); if(rfRd.on) rfReadStop(); }
   if(v==="lesson"){ const id=h.slice(7); const L=id==="preview"?PREVIEW:getLesson(id); if(!L){ if(lessonsState==="loading"){ $("#content").innerHTML='<p class="muted">Đang tải bài học…</p>'; setTimeout(route,800); return; } location.hash="course-"+curLevel; return; }
     if(!L.preview&&!lvApproved(L.level)){ if(!ACCESS_LOADED){ $("#content").innerHTML='<p class="muted">Đang kiểm tra quyền học…</p>'; clearTimeout(route._a); route._a=setTimeout(route,600); return; } curLevel=L.level; toast(`🔒 Cần được duyệt cấp độ ${lvName(L.level)} trước khi học`); location.replace("#course-"+L.level); return; }
     openLesson(L); }
@@ -1186,12 +1229,13 @@ function docCard(d){
   return `<div class="doc"><div class="ic">${c.ic}</div><div style="flex:1;min-width:0"><div class="tt">${esc(d.title)}</div>
     <div class="meta">${c.name} · ${esc(lvName(d.level))} · ${fmtSize(d.size||0)} · ${fmtDate(d.createdAt)}${d.srtId?" · có phụ đề":""}</div>
     ${d.note?`<div class="note">${esc(d.note)}</div>`:""}
-    <div class="acts"><button class="btn sm" data-view="${esc(d.id)}">👁 Xem</button>${DL||SB||location.protocol==="file:"?`<button class="btn sm" data-dl="${esc(d.id)}">⬇ Tải về</button>`:""}${d.srtId?`<button class="btn sm p" data-shadow="${esc(d.id)}">🎧 Luyện shadowing</button>`:""}${ADM()&&ASSETS?`<button class="btn sm red" data-del="${esc(d.id)}">🗑 Xóa</button>`:""}</div></div></div>`;
+    <div class="acts"><button class="btn sm" data-view="${esc(d.id)}">👁 Xem</button>${DL||SB||location.protocol==="file:"?`<button class="btn sm" data-dl="${esc(d.id)}">⬇ Tải về</button>`:""}${d.srtId?`<button class="btn sm p" data-shadow="${esc(d.id)}">🎧 Luyện shadowing</button>`:""}${canTeach()&&ASSETS?`<button class="btn sm" data-edoc="${esc(d.id)}">✏️ Sửa · đổi file</button><button class="btn sm red" data-del="${esc(d.id)}">🗑 Xóa</button>`:""}</div></div></div>`;
 }
 function bindDocActs(root){
   root.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>viewDoc(DOCS.find(d=>d.id===b.dataset.view)));
   root.querySelectorAll("[data-dl]").forEach(b=>b.onclick=()=>downloadDoc(DOCS.find(d=>d.id===b.dataset.dl)));
   root.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>confirmDelDoc(DOCS.find(d=>d.id===b.dataset.del)));
+  root.querySelectorAll("[data-edoc]").forEach(b=>b.onclick=()=>{ const d=DOCS.find(x=>x.id===b.dataset.edoc); if(d) openUpload(d.level,d); });
   root.querySelectorAll("[data-shadow]").forEach(b=>b.onclick=()=>{ SH.src="doc:"+b.dataset.shadow; pendingStep=5; location.hash="lesson-"+BUILTIN.id; if(curView()==="lesson") go(5); });
 }
 $("#upBtn").onclick=()=>openUpload(curLevel);
@@ -1260,36 +1304,58 @@ function unsupportedMsg(ext){
   return "Loại file này chưa được hỗ trợ. Hỗ trợ: PDF, ảnh (JPG, PNG, WebP, GIF), video (MP4, WebM), văn bản (TXT, MD, CSV).";
 }
 function guessCat(ct){ if(ct==="application/pdf") return "book"; if(ct.startsWith("video/")) return "video"; if(ct.startsWith("image/")) return "img"; return "other"; }
-function openUpload(level){
+function openUpload(level, E){
   if(!ASSETS||!DB){ toast("Chỉ quản trị viên mới tải tài liệu lên được"); return; }
-  let file=null, srt=null;
-  const m=modal(`<h3>📤 Tải tài liệu lên<button class="x" data-close>×</button></h3>
+  let file=null, srt=null, dropSrt=false;
+  const m=modal(`<h3>${E?"✏️ Sửa tài liệu / đổi file":"📤 Tải tài liệu lên"}<button class="x" data-close>×</button></h3>
     <div id="upMsg"></div>
-    <div class="drop" id="upDrop"><div style="font-size:30px">📄</div><b id="upName">Kéo thả file vào đây hoặc bấm để chọn</b><div class="muted" style="font-size:12px">PDF, ảnh, video MP4/WebM, TXT/MD/CSV · tối đa 20 MB</div><input type="file" id="upFile" hidden accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.mp4,.webm,.txt,.md,.csv,.json"></div>
-    <div class="fld" id="srtFld" style="margin-top:12px" class="hidden"><label>Phụ đề cho video (.srt / .vtt) <span class="muted">· không bắt buộc, có thì học viên luyện shadowing được</span></label><input type="file" id="upSrt" accept=".srt,.vtt,.txt"></div>
+    <div class="drop" id="upDrop"><div style="font-size:30px">📄</div><b id="upName">${E?"Bấm hoặc kéo thả file mới để thay file cũ":"Kéo thả file vào đây hoặc bấm để chọn"}</b><div class="muted" style="font-size:12px">PDF, ảnh, video MP4/WebM, TXT/MD/CSV · tối đa 20 MB</div><input type="file" id="upFile" hidden accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.mp4,.webm,.txt,.md,.csv,.json"></div>
+    <div id="upCur" class="lrow ${E?"":"hidden"}" style="margin-top:8px"><div class="tt"><div class="muted" style="font-size:12px" id="upCurL">${E?"File hiện tại":"File đã chọn"}</div><b id="upCurN"></b></div><button class="btn sm red" id="upClr" type="button">✕ Bỏ file này</button></div>
+    <div class="fld" id="srtFld" style="margin-top:12px" class="hidden"><label>Phụ đề cho video (.srt / .vtt) <span class="muted">· không bắt buộc, có thì học viên luyện shadowing được</span></label><input type="file" id="upSrt" accept=".srt,.vtt,.txt"><div id="upSrtCur" class="hidden" style="margin-top:6px;display:flex;gap:8px;align-items:center"><span class="muted" style="font-size:13px" id="upSrtCurN">Đang có phụ đề</span><button class="btn sm red" id="upSrtClr" type="button">✕ Xóa phụ đề</button></div></div>
     <div class="fld" style="margin-top:12px"><label>Tên tài liệu</label><input type="text" id="upTitle" maxlength="160" placeholder="Ví dụ: Đề thi thử HSK 1 – Đề số 1"></div>
     <div class="row2"><div class="fld"><label>Loại</label><select id="upCat">${CATS.map(c=>`<option value="${c.id}">${c.ic} ${c.name}</option>`).join("")}</select></div>
     <div class="fld"><label>Cấp độ</label><select id="upLv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===level?"selected":""}>${esc(l.full)}</option>`).join("")}</select></div></div>
     <div class="fld"><label>Ghi chú cho học viên <span class="muted">(không bắt buộc)</span></label><input type="text" id="upNote" maxlength="240" placeholder="Ví dụ: Làm trong 40 phút, đáp án ở trang cuối"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" data-close>Hủy</button><button class="btn p" id="upGo">Tải lên</button></div>`);
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">${E?`<button class="btn red" id="upDel" style="margin-right:auto">🗑 Xóa tài liệu</button>`:""}<button class="btn" data-close>Hủy</button><button class="btn p" id="upGo">${E?"💾 Lưu thay đổi":"Tải lên"}</button></div>`);
   m.querySelector("#srtFld").classList.add("hidden");
+  const curBox=()=>{ const has=file||(E&&!file); m.querySelector("#upCur").classList.toggle("hidden",!file&&!E); m.querySelector("#upCurL").textContent=file?"File đã chọn":"File hiện tại"; m.querySelector("#upCurN").textContent=file?`${file.f.name} (${fmtSize(file.f.size)})`:E?`${E.fileName||E.title} (${fmtSize(E.size||0)})`:""; m.querySelector("#upClr").classList.toggle("hidden",!file); return has; };
+  const vidNow=()=>((file&&file.type)||(E&&!file&&E.contentType)||"").startsWith("video/");
+  const srtBox=()=>{ m.querySelector("#srtFld").classList.toggle("hidden",!vidNow()); const sc=m.querySelector("#upSrtCur"); const show=E&&E.srtId&&!dropSrt&&!srt; sc.classList.toggle("hidden",!show); sc.style.display=show?"flex":"none"; };
+  if(E){ m.querySelector("#upTitle").value=E.title||""; m.querySelector("#upCat").value=E.cat||"other"; m.querySelector("#upNote").value=E.note||""; curBox(); srtBox();
+    m.querySelector("#upDel").onclick=()=>{ closeModal(); confirmDelDoc(E); }; }
+  m.querySelector("#upClr").onclick=e=>{ e.stopPropagation(); file=null; m.querySelector("#upFile").value=""; m.querySelector("#upName").textContent=E?"Bấm hoặc kéo thả file mới để thay file cũ":"Kéo thả file vào đây hoặc bấm để chọn"; curBox(); srtBox(); };
+  m.querySelector("#upSrtClr").onclick=()=>{ dropSrt=true; srtBox(); toast("Phụ đề sẽ bị xóa khi bấm Lưu"); };
   const msg=t=>m.querySelector("#upMsg").innerHTML=t?`<div class="err">${esc(t)}</div>`:"";
   const pick=f=>{
     msg(""); const ext=extOf(f.name); const type=TYPE_BY_EXT[ext];
     if(!type&&!(SB_ON&&TYPE_BY_EXT_SB[ext])){ file=null; m.querySelector("#upName").textContent="Kéo thả file vào đây hoặc bấm để chọn"; msg(unsupportedMsg(ext)); return; }
-    if(SB_ON&&!type&&TYPE_BY_EXT_SB[ext]){ file={f,type:TYPE_BY_EXT_SB[ext]}; m.querySelector("#upName").textContent="✅ "+f.name+" ("+fmtSize(f.size)+")"; if(!m.querySelector("#upTitle").value) m.querySelector("#upTitle").value=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," "); m.querySelector("#upCat").value=ext.startsWith("doc")||ext.startsWith("ppt")?"book":"other"; return; }
+    if(SB_ON&&!type&&TYPE_BY_EXT_SB[ext]){ file={f,type:TYPE_BY_EXT_SB[ext]}; m.querySelector("#upName").textContent="✅ "+f.name+" ("+fmtSize(f.size)+")"; if(!m.querySelector("#upTitle").value) m.querySelector("#upTitle").value=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," "); m.querySelector("#upCat").value=ext.startsWith("doc")||ext.startsWith("ppt")?"book":"other"; curBox(); srtBox(); return; }
     if(f.size>(SB_ON?50:20)*1024*1024){ file=null; msg("File lớn hơn 20 MB. Hãy nén hoặc chia nhỏ file rồi tải lên."); return; }
     file={f,type}; m.querySelector("#upName").textContent="✅ "+f.name+" ("+fmtSize(f.size)+")";
     if(!m.querySelector("#upTitle").value) m.querySelector("#upTitle").value=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ");
     m.querySelector("#upCat").value=guessCat(type);
     m.querySelector("#srtFld").classList.toggle("hidden",!type.startsWith("video/"));
+    curBox(); srtBox();
   };
   const drop=m.querySelector("#upDrop"), inp=m.querySelector("#upFile");
   drop.onclick=()=>inp.click(); inp.onchange=()=>{ if(inp.files[0]) pick(inp.files[0]); };
   drop.ondragover=e=>{e.preventDefault();drop.classList.add("over");}; drop.ondragleave=()=>drop.classList.remove("over");
   drop.ondrop=e=>{e.preventDefault();drop.classList.remove("over"); if(e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]);};
-  m.querySelector("#upSrt").onchange=e=>{ srt=e.target.files[0]||null; };
+  m.querySelector("#upSrt").onchange=e=>{ srt=e.target.files[0]||null; srtBox(); };
   m.querySelector("#upGo").onclick=async()=>{
+    if(E){ const title=m.querySelector("#upTitle").value.trim(); if(!title){ msg("Hãy nhập tên tài liệu."); return; }
+      const go=m.querySelector("#upGo"); go.disabled=true; go.textContent=file?"Đang tải file mới…":"Đang lưu…";
+      try{ const d=Object.assign({},E); delete d.id; Object.assign(d,{title,cat:m.querySelector("#upCat").value,level:m.querySelector("#upLv").value,note:m.querySelector("#upNote").value.trim(),updatedAt:Date.now()});
+        const old=[];
+        if(file){ const res=await ASSETS.upload(file.f,{type:file.type}); old.push(E.assetId); Object.assign(d,{assetId:res.id,contentType:res.contentType,size:res.sizeBytes,fileName:file.f.name}); }
+        const isVid=(d.contentType||"").startsWith("video/");
+        if(srt&&isVid){ const txt=await srt.text(); const sr=await ASSETS.upload(new Blob([txt],{type:"text/plain"}),{type:"text/plain"}); if(E.srtId) old.push(E.srtId); d.srtId=sr.id; }
+        else if((dropSrt||!isVid)&&E.srtId){ old.push(E.srtId); d.srtId=null; }
+        await DB.doc("docs/"+E.id).set(d);
+        for(const id of old){ try{ if(id) await ASSETS.delete(id); }catch(e){} }
+        closeModal(); toast(file?"✅ Đã đổi file: "+title:"✅ Đã lưu thay đổi");
+      }catch(e){ go.disabled=false; go.textContent="💾 Lưu thay đổi"; msg("Không lưu được"+(e&&e.message?": "+e.message:"")+". Hãy thử lại."); }
+      return; }
     if(!file){ msg("Hãy chọn một file."); return; }
     const title=m.querySelector("#upTitle").value.trim(); if(!title){ msg("Hãy nhập tên tài liệu."); return; }
     const go=m.querySelector("#upGo"); go.disabled=true; go.textContent="Đang tải lên…";
@@ -1337,7 +1403,7 @@ async function renderAdmin(){
   $("#meName").textContent=(ME&&ME.name?ME.name:"Bạn")+" · "+ROLE_NAME[myRole()];
   box.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{ admTab=b.dataset.t; renderAdmin(); });
   const p=$("#apanel"); p.className=admTab==="overview"?"":"card";
-  if(admTab==="overview"){ renderAdmOverview(p,center,outside); const pr=canManage()?pendingReqs().length:0; if(pr) p.insertAdjacentHTML("afterbegin",`<div class="acc-lock wait" style="text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="font-size:28px">⏳</span><div style="flex:1"><b>Có ${pr} yêu cầu học đang chờ duyệt</b><div class="muted" style="font-size:13px">Duyệt ngay trong danh sách học viên, cột “Quyền học”.</div></div><button class="btn p sm" id="goAp">Duyệt ngay →</button></div>`); const ga=$("#goAp"); if(ga) ga.onclick=()=>{ const f=pendingReqs()[0]; admTab=f&&ltype(f.l)==="center"?"center":"outside"; renderAdmin(); }; }
+  if(admTab==="overview"){ renderAdmOverview(p,center,outside); const od=$("#ovDocs"); if(od) bindDocActs(od); const pr=canManage()?pendingReqs().length:0; if(pr) p.insertAdjacentHTML("afterbegin",`<div class="acc-lock wait" style="text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="font-size:28px">⏳</span><div style="flex:1"><b>Có ${pr} yêu cầu học đang chờ duyệt</b><div class="muted" style="font-size:13px">Duyệt ngay trong danh sách học viên, cột “Quyền học”.</div></div><button class="btn p sm" id="goAp">Duyệt ngay →</button></div>`); const ga=$("#goAp"); if(ga) ga.onclick=()=>{ const f=pendingReqs()[0]; admTab=f&&ltype(f.l)==="center"?"center":"outside"; renderAdmin(); }; }
   else if(admTab==="center"||admTab==="outside") await renderLearners(p, admTab==="center"?center:outside, admTab);
   else if(admTab==="docs") renderAdmDocs(p);
   else if(admTab==="stories") renderAdmStories(p);
@@ -1363,7 +1429,7 @@ function renderAdmOverview(p,center,outside){
     </div>
     <div class="row2" style="margin-top:16px">
       ${M?"":"<!--"}<div class="card"><h3 style="margin:0 0 10px;font-size:16px">🆕 Học viên mới đăng ký</h3>${LEARNERS.filter(l=>l.profile&&l.profile.name).sort((a,b)=>(b.profile.at||0)-(a.profile.at||0)).slice(0,6).map(l=>`<div class="lrow" style="margin-bottom:6px"><div class="tt"><b class="nm2"></b><div class="muted" style="font-size:12px">${(l.profile.courses||[]).map(k=>LANGS[k]?LANGS[k].flag:"").join(" ")} · ${l.profile.at?new Date(l.profile.at).toLocaleDateString("vi-VN"):""}</div></div></div>`).join("")||'<div class="muted">Chưa có học viên đăng ký.</div>'}</div>${M?"":"-->"}
-      <div class="card"><h3 style="margin:0 0 10px;font-size:16px">📂 Tài liệu mới tải lên</h3>${DOCS.slice(0,6).map(d=>`<div class="lrow" style="margin-bottom:6px"><div class="tt"><b>${esc(d.title)}</b><div class="muted" style="font-size:12px">${esc(lvName(d.level))} · ${fmtDate(d.createdAt)}</div></div></div>`).join("")||'<div class="muted">Chưa có tài liệu.</div>'}</div>
+      <div class="card"><h3 style="margin:0 0 10px;font-size:16px">📂 Tài liệu mới tải lên</h3><div id="ovDocs">${DOCS.slice(0,6).map(d=>`<div class="lrow" style="margin-bottom:6px"><div class="tt"><b>${esc(d.title)}</b><div class="muted" style="font-size:12px">${esc(lvName(d.level))} · ${fmtDate(d.createdAt)}</div></div><button class="btn sm" data-view="${esc(d.id)}" title="Xem">👁</button><button class="btn sm" data-edoc="${esc(d.id)}" title="Sửa / đổi file">✏️</button><button class="btn sm red" data-del="${esc(d.id)}" title="Xóa">🗑</button></div>`).join("")||'<div class="muted">Chưa có tài liệu.</div>'}</div></div>
     </div>`;
   const nm=p.querySelectorAll(".nm2"); LEARNERS.filter(l=>l.profile&&l.profile.name).sort((a,b)=>(b.profile.at||0)-(a.profile.at||0)).slice(0,6).forEach((l,i)=>{ if(nm[i]) nm[i].textContent=l.profile.name; });
   $("#aqDoc").onclick=()=>openUpload(admLevel); $("#aqLes").onclick=()=>{ admTab="compose"; renderAdmin(); setTimeout(()=>openComposer(null),50); };
@@ -1379,7 +1445,7 @@ async function renderLearners(p, list, tab){
   if(!list.length){ p.innerHTML=`<div class="empty"><div class="ic">👥</div>${tab==="center"?"Chưa có học viên nào được xếp vào 舒如天上星. Vào tab “Học viên ngoài 舒如天上星” để chuyển học viên vào lớp.":"Chưa có học viên nào. Học viên xuất hiện ở đây sau khi mở trang và học (sau khi tạo hồ sơ học viên)."}</div>`; return; }
   let ps={}; try{ if(USER) ps=await USER.profiles(list.map(l=>l.id)); }catch(e){}
   if(curView()!=="admin"||$("#apanel")!==p) return;
-  const total=13*Math.max(1,allLessonsAll().filter(l=>l.status==="pub").length);
+  const total=ORDER().length*Math.max(1,allLessonsAll().filter(l=>l.status==="pub").length);
   const pendHere=pendingReqs().filter(x=>list.some(l=>l.id===x.l.id));
   p.innerHTML=(pendHere.length?`<div class="acc-lock wait" style="text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><span style="font-size:26px">⏳</span><div style="flex:1;min-width:200px"><b>${pendHere.length} yêu cầu học đang chờ duyệt</b><div class="muted" style="font-size:13px">Bấm ✓ để duyệt, ✕ để từ chối ngay trong cột “Quyền học”. Bấm ⚙️ để tự tích các cấp độ cho học viên.</div></div>${pendHere.length>1?`<button class="btn p sm" id="apAllHere">✅ Duyệt tất cả</button>`:""}</div>`:"")+`<table class="t"><tr><th>Học viên</th><th>Liên hệ</th><th>Khóa học</th><th>Quyền học</th><th>Lần cuối vào học</th><th>Số ngày</th><th>Tiến độ</th><th>Phân loại</th><th>Lớp / Ghi chú</th></tr>${list.sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(l=>{ const pf=l.profile||{}; const r=Object.assign({type:pf.studied?"center":"outside",cls:pf.cls||""},ROSTER[l.id]||{}); const pr=ps[l.id]||{}; const pct=Math.min(100,Math.round((l.steps||0)/total*100));
     return `<tr data-u="${esc(l.id)}"><td><div class="who">${pr.avatarUrl?`<img src="${pr.avatarUrl}" alt="">`:""}<span class="nm"></span></div>${pf.studied?'<span class="chipx" style="font-size:10px;padding:1px 6px">từng học tại 舒如天上星</span>':""}${pf.name?"":'<span class="chipx" style="font-size:10px;padding:1px 6px">chưa tạo hồ sơ</span>'}</td><td class="ct2" style="font-size:12px"></td><td style="font-size:13px">${(pf.courses||[]).map(k=>LANGS[k]?LANGS[k].flag:"").join(" ")}${pf.goal?`<div class="muted" style="font-size:11px">${esc(pf.goal)}</div>`:""}</td><td>${accCell(l)}</td><td>${l.lastSeen?new Date(l.lastSeen).toLocaleString("vi-VN"):"–"}</td><td>${(l.days||[]).length}</td>
@@ -1398,7 +1464,7 @@ async function renderLearners(p, list, tab){
 }
 function renderAdmDocs(p){
   p.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><div class="muted">Tài liệu tải lên hiện ở mục “Tài liệu & Đề thi” của cấp độ tương ứng.</div><button class="btn p" id="admUp">＋ Tải tài liệu lên</button></div>`+
-   (DOCS.length?`<table class="t"><tr><th>Tài liệu</th><th>Cấp độ</th><th>Loại</th><th>Dung lượng</th><th>Ngày tải</th><th></th></tr>${DOCS.map(d=>`<tr><td><b>${esc(d.title)}</b>${d.srtId?' <span class="chipx">có phụ đề</span>':""}</td><td>${esc(lvName(d.level))}</td><td>${catOf(d.cat).ic} ${catOf(d.cat).name}</td><td>${fmtSize(d.size||0)}</td><td>${fmtDate(d.createdAt)}</td><td style="white-space:nowrap;text-align:right"><button class="btn sm" data-view="${esc(d.id)}">👁</button> <button class="btn sm red" data-del="${esc(d.id)}">🗑</button></td></tr>`).join("")}</table>`
+   (DOCS.length?`<table class="t"><tr><th>Tài liệu</th><th>Cấp độ</th><th>Loại</th><th>Dung lượng</th><th>Ngày tải</th><th></th></tr>${DOCS.map(d=>`<tr><td><b>${esc(d.title)}</b>${d.srtId?' <span class="chipx">có phụ đề</span>':""}</td><td>${esc(lvName(d.level))}</td><td>${catOf(d.cat).ic} ${catOf(d.cat).name}</td><td>${fmtSize(d.size||0)}</td><td>${fmtDate(d.createdAt)}</td><td style="white-space:nowrap;text-align:right"><button class="btn sm" data-view="${esc(d.id)}" title="Xem">👁</button> <button class="btn sm" data-edoc="${esc(d.id)}" title="Sửa / đổi file">✏️ Sửa · đổi file</button> <button class="btn sm red" data-del="${esc(d.id)}" title="Xóa">🗑 Xóa</button></td></tr>`).join("")}</table>`
    :`<div class="empty"><div class="ic">📂</div>Chưa có tài liệu nào.</div>`);
   $("#admUp").onclick=()=>openUpload(admLevel);
   bindDocActs(p);
@@ -1507,16 +1573,17 @@ function zhLine(tokens, clozeFn){
   }).join("");
 }
 const WHO=s=>(LS&&LS.speakers&&LS.speakers[s])||{name:s,av:"🙂"};
-function markDone(i){ if(done.has(i)) return; done.add(i); if(!LS.preview){ store.set(doneKey(LS.id),[...done]); syncLearner(); } renderBar(); toast("✅ Hoàn thành bước: "+STEPS[i].vi); }
+function markDone(i){ if(!LS||curView()!=="lesson") return; if(done.has(i)) return; done.add(i); if(!LS.preview){ store.set(doneKey(LS.id),[...done]); syncLearner(); } renderBar(); toast("✅ Hoàn thành bước: "+STEPS[i].vi); }
 
 const STEPS=[
   {vi:"Khởi động",zh:"热身",ic:"🎯",r:rWarm},{vi:"Từ mới",zh:"生词",ic:"📖",r:rVocab},{vi:"Thẻ nhớ",zh:"闪卡",ic:"🃏",r:rFlash},
   {vi:"Ngữ pháp",zh:"语法",ic:"📐",r:rGram},{vi:"Hội thoại",zh:"会话",ic:"💬",r:rDialog},{vi:"Video shadowing",zh:"跟读视频",ic:"🎬",r:rShadow,isNew:true},
   {vi:"Điền từ",zh:"填空",ic:"✏️",r:rFill},{vi:"Sắp xếp",zh:"排序",ic:"🧩",r:rOrder},{vi:"Nối câu",zh:"连线",ic:"🔗",r:rMatch},
   {vi:"Trắc nghiệm",zh:"测验",ic:"☑️",r:rQuiz},{vi:"Luyện nói",zh:"口语",ic:"🎤",r:rSpeak},{vi:"Có thể bạn chưa biết",zh:"文化",ic:"🏮",r:rCulture},{vi:"Kiểm tra",zh:"考试",ic:"🏆",r:rTest},
-  {vi:"Học sâu từng chữ",zh:"写字",ic:"✍️",r:rDeep,isNew:true}
+  {vi:"Học sâu từng chữ",zh:"写字",ic:"✍️",r:rDeep,isNew:true},
+  {vi:"Luyện dịch",zh:"翻译",ic:"🌐",r:rTrans,isNew:true}
 ];
-function ORDER(lang){ return [0,1,2,3,4,5,6,7,8,9,10,11,12]; }
+function ORDER(lang){ return [0,1,2,3,4,5,6,7,8,9,10,14,11,12]; }
 function stepCount(l){ return ORDER(langOf(l.level)).length; }
 function fixSticky(){}
 window.addEventListener("resize",fixSticky);
@@ -1687,6 +1754,7 @@ function srcOptions(){
 }
 function refreshSrcOptions(){ const s=$("#src"); if(!s) return; const v=s.value; s.innerHTML=srcOptions(); s.value=v; if(SH.src.startsWith("doc:")&&!SH.cues.length) setSrc(SH.src); }
 function rShadow(el,o){ o=o||{};
+  if(!o.video){ SH.dict=false; SH.trMode=false; }
   if(o.video){ SH._vp=true; } else if(SH._vp){ SH._vp=false; SH.src="lesson"; }
   el.innerHTML=(o.video&&!hasSub(o.video)?guide("Video này <b>chưa có phụ đề</b> nên chỉ xem được. Khi quản trị viên thêm file phụ đề .srt, bạn sẽ luyện shadowing được từng câu."):guide("Xem video, nghe từng câu rồi <b>nói theo ngay</b> (shadowing). Chạm vào từ trong phụ đề để tra nghĩa và thêm vào Thẻ nhớ."))+`
   <div class="srcbar ${o.video?"hidden":""}"><b>Nguồn video:</b><select id="src">${srcOptions()}</select></div>
@@ -1708,7 +1776,7 @@ function rShadow(el,o){ o=o||{};
         <div class="row"><button class="btn sm" id="tRe">🔊 Nghe lại</button><button class="btn sm" id="tRec">⏺ Ghi âm giọng tôi</button><button class="btn sm hidden" id="tMine">▶ Nghe giọng tôi</button><button class="btn sm p" id="tNext">Câu tiếp ▶</button></div>
         <div id="recMsg" class="muted" style="font-size:13px;margin-top:6px"></div></div>
     </div>
-    <div><b>Phụ đề</b> <span class="muted" style="font-size:13px">· bấm vào câu để nhảy tới</span><div class="cues" id="cues" style="margin-top:6px"></div></div></div>`;
+    <div><div id="cuesWrap"><b>Phụ đề</b> <span class="muted" style="font-size:13px">· bấm vào câu để nhảy tới</span><div class="cues" id="cues" style="margin-top:6px"></div></div><div id="dictBox" class="hidden"></div><div id="trBox" class="hidden"></div></div></div>`;
   $("#src").onchange=e=>setSrc(e.target.value);
   $("#bPlay").onclick=()=>{ if(SH.playing) stopAll(true); else playCue(SH.idx); };
   $("#bPrev").onclick=()=>playCue(SH.idx-1); $("#bNext").onclick=()=>playCue(SH.idx+1);
@@ -1740,7 +1808,7 @@ function setSrc(s){
   else if(s.startsWith("vid:")){ const v=findVideo(s.slice(4)); SH.cues=[]; SH.curURL=null;
     if(v){ if(v.kind==="youtube") SH.ytId=v.ytId; else SH.curURL=v.kind==="url"?v.url:blobUrl(v.assetId);
       if(!hasSub(v)) SH.vidNoSub=true;
-      else videoSubsText(v).then(t=>{ if(SH.src!==s) return; SH.cues=parseSubs(t||"", langOf(v.level)); if(!SH.cues.length){ SH.vidNoSub=true; toast("Không đọc được phụ đề của video"); } drawStage(); drawCues(); drawGr(); }).catch(()=>{ if(SH.src!==s) return; SH.vidNoSub=true; drawStage(); drawCues(); toast("Không tải được phụ đề của video"); }); } }
+      else videoSubsText(v).then(t=>{ if(SH.src!==s) return; SH.cues=parseSubs(t||"", langOf(v.level)); if(!SH.cues.length){ SH.vidNoSub=true; toast("Không đọc được phụ đề của video"); } drawStage(); drawCues(); drawGr(); if(SH.dict) drawDict(); if(SH.trMode) setTr(true); }).catch(()=>{ if(SH.src!==s) return; SH.vidNoSub=true; drawStage(); drawCues(); toast("Không tải được phụ đề của video"); }); } }
   else { const d=DOCS.find(x=>"doc:"+x.id===s); SH.cues=[]; SH.curURL=d?blobUrl(d.assetId):null;
     if(d&&d.srtId){ fetch(blobUrl(d.srtId)).then(r=>r.text()).then(t=>{ if(SH.src!==s) return; SH.cues=parseSubs(t, langOf(d.level)); drawStage(); drawCues(); drawGr(); }).catch(()=>toast("Không đọc được phụ đề của video")); } }
   drawStage(); drawCues(); drawGr();
@@ -1767,6 +1835,8 @@ function drawStage(){
 function drawCap(){
   const c=SH.cues[SH.idx]; const box=isVid()?$("#capbox"):$("#cap"); if(!box) return;
   if(!c){ box.innerHTML=SH.vidNoSub?'<div class="vi" style="opacity:.7">Video chưa có phụ đề · chỉ xem</div>':isVid()&&(SH.curURL||SH.ytId)?'<div class="vi" style="opacity:.7">Đang tải phụ đề…</div>':""; return; }
+  if(SH.trMode){ box.innerHTML=TRS.dir==="vf"?`<div class="vi" style="opacity:.8">🌐 Phụ đề đang ẩn: hãy dịch câu tiếng Việt bên phải sang ngoại ngữ</div>`:`<div class="zhs zh">${zhLine(c.tokens)}</div>`; return; }
+  if(SH.dict&&!DICT.shown[SH.idx]){ box.innerHTML='<div class="vi" style="opacity:.75">✍️ Phụ đề đang ẩn: nghe rồi chép lại câu này</div>'; return; }
   box.innerHTML=SH.mode==="none"?`<div class="vi" style="opacity:.75">(phụ đề đang ẩn: hãy nghe và nói theo)</div>`
     :`<div class="zhs zh">${zhLine(c.tokens,SH.mode==="cloze"?clozeFn():null)}</div>${SH.mode==="both"&&c.vi?`<div class="vi">${esc(c.vi)}</div>`:""}`;
   if(!isVid()){ ["A","B"].forEach(k=>{ const p=$("#per"+k); if(p) p.classList.toggle("talk",SH.playing&&c.who===k); }); const pb=$("#pb"); if(pb) pb.style.width=((SH.idx+(SH.playing?.5:1))/SH.cues.length*100)+"%"; }
@@ -1812,6 +1882,7 @@ function playCue(i){
 function markTok(tokens,ci){ let acc=0,k=0; for(;k<tokens.length;k++){ if(ci<acc+tokens[k].length) break; acc+=tokens[k].length; } const box=$("#cap"); if(!box) return; box.querySelectorAll(".zhs > span").forEach((s,i)=>s.classList.toggle("cur",i===k&&s.classList.contains("w"))); }
 function cueEnd(){
   document.querySelectorAll(".w.cur").forEach(w=>w.classList.remove("cur"));
+  if(SH.dict||SH.trMode){ SH.playing=false; btns(); drawCap(); const f=$(SH.dict?"#dIn":"#trInp"); if(f) f.focus(); return; }
   if(SH.loop){ setTimeout(()=>{ if(SH.playing) playCue(SH.idx); },700); return; }
   if(SH.auto==="stop"){ SH.playing=false; btns(); drawCap(); showTurn(); if(SH.idx>=2) markDone(5); return; }
   if(SH.auto==="gap"&&SH.idx<SH.cues.length-1){
@@ -1929,6 +2000,13 @@ function rSpeak(el){
   el.querySelectorAll("[data-sl]").forEach(b=>b.onclick=()=>say(DLG()[+b.dataset.sl].zh,.55));
   el.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{ const i=b.dataset.r; record(b,el.querySelector(`[data-m="${i}"]`),$("#m"+i)); markDone(10); });
   el.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ if(myURL) new Audio(myURL).play().catch(()=>{}); });
+}
+/* Luyện dịch */
+function rTrans(el){
+  const items=DLG().map(d=>({zh:d.zh,vi:d.vi}));
+  V().forEach(v=>{ if(v.ex&&v.exVi&&!items.some(x=>x.zh===v.ex)) items.push({zh:v.ex,vi:v.exVi}); });
+  el.innerHTML=guide("Tự gõ bản dịch theo cách của bạn, không cần giống y hệt. Bấm <b>So với đáp án</b> để xem bản dịch tham khảo, rồi tự đánh giá.")+'<div id="trIn"></div>';
+  renderTranslate($("#trIn"),items,{lang:CUR_LANG,key:"l_"+LS.id,onPlay:i=>say(items[i].zh,.9),onRate:()=>{ const r=trStore("l_"+LS.id).r||{}; if(r.fv_all||r.vf_all||Object.keys(r).length>=Math.min(3,items.length)) markDone(14); }});
 }
 /* 12. Văn hóa */
 function rCulture(el){
@@ -2345,6 +2423,7 @@ function renderStories(){
   box.querySelectorAll("[data-sk]").forEach(b=>b.onclick=()=>{ storyKind=b.dataset.sk; renderStories(); });
   const ns=$("#newStory"); if(ns) ns.onclick=()=>openStoryComposer(null);
 }
+let RVIEW=store.get("srt_rview","full");
 let STORY=null, RMODE=store.get("srt_rmode","kw"), RTR=store.get("srt_rtr",true), rTok=0, rIdx=0, rPlaying=false, rRate=.85;
 function storyLex(st){ CUR_LANG=langOf(st.level); LEX=Object.assign({}, CUR_LANG==="zh"?BASE_DICT:{}); [...(st.keywords||[]),...(st.phrases||[])].forEach(k=>{ LEX[k.w]=[k.py,k.vi]; if(!CJK(CUR_LANG)) LEX[k.w.toLowerCase()]=[k.py,k.vi]; }); }
 function storyLine(tokens, st){
@@ -2359,18 +2438,35 @@ function openStory(id){
   const ph=LANGS[CUR_LANG].ph;
   $("#storyBody").innerHTML=`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="btn sm" data-go="truyen">← Danh sách bài đọc</button><h2 style="margin:0" class="zh">${esc(st.emoji||"📖")} ${esc(st.zh)}</h2></div>
     <div style="margin-top:6px"><span class="chipx">${esc(lvName(st.level))}</span> <span class="muted">${esc(st.vi||"")}</span>${st.id==="preview"?' <span class="tag draft">Xem trước</span>':""}</div>
-    <div class="rtool"><div class="seg" id="rMode"><button data-v="han">${CJK(CUR_LANG)?"Hán":"Chữ"}</button><button data-v="kw">+ ${esc(ph[0].toUpperCase()+ph.slice(1))} từ khóa</button><button data-v="full">+ ${esc(ph[0].toUpperCase()+ph.slice(1))} đủ</button></div>
-      <button class="btn sm ${RTR?"on":""}" id="rTr">🇻🇳 Dịch từng câu</button><button class="btn sm" id="rGrAll">📐 Mở tất cả ngữ pháp</button></div>
+    <div class="rtool"><div class="seg" id="rView"><button data-rv="full">📄 Cả bài</button><button data-rv="sent">📑 Từng câu</button><button data-rv="tr">🌐 Luyện dịch</button></div><div class="seg" id="rMode"><button data-v="han">${CJK(CUR_LANG)?"Hán":"Chữ"}</button><button data-v="kw">+ ${esc(ph[0].toUpperCase()+ph.slice(1))} từ khóa</button><button data-v="full">+ ${esc(ph[0].toUpperCase()+ph.slice(1))} đủ</button></div>
+      <button class="btn sm ${RTR?"on":""}" id="rTr">🇻🇳 Bản dịch</button><button class="btn sm" id="rGrAll">📐 Mở tất cả ngữ pháp</button></div>
     <div class="legend">Từ <span class="k">đậm có màu</span> là từ khóa cần học. Mọi từ khác cũng bấm được: xem nghĩa${CUR_LANG==="zh"?", nét viết, bộ thủ":""} và lưu vào sổ từ. Từ có <span class="ph">nét chấm</span> là cụm nói tự nhiên, nên học thuộc cả cụm.</div>
+    <div class="reader rfull m-${RMODE}" id="readerFull">
+      <div class="rf-bar"><button class="btn p" id="rfPlay">▶ Nghe cả bài</button><button class="btn" id="rfShadow">🗣 Nghe rồi nói theo</button><button class="btn" id="rfRead">🎙 Tự đọc cả bài</button><button class="btn hidden" id="rfMine">▶ Nghe giọng tôi</button><select id="rfSpd" title="Tốc độ đọc mẫu"><option value="0.6">Chậm 0.6×</option><option value="0.85">Vừa 0.85×</option><option value="1">Thường 1×</option></select></div>
+      <div class="rf-status hidden" id="rfStatus"></div>
+      <div class="rf-text zh">${storyParas(st).map(pa=>`<p>${pa.map(i=>`<span class="sf" data-i="${i}">${storyLine(tok(st.sentences[i].zh),st)}</span>`).join(CJK(CUR_LANG)?"":" ")}</p>`).join("")}</div>
+      ${(st.sentences||[]).some(x=>x.vi)?`<div class="rf-vi ${RTR?"":"hidden"}" id="rfVi"><div class="muted" style="font-size:12px;font-weight:700;margin-bottom:6px">🇻🇳 BẢN DỊCH</div>${storyParas(st).map(pa=>`<p>${pa.map(i=>`<span class="sfv" data-i="${i}">${esc(st.sentences[i].vi||"")}</span>`).join(" ")}</p>`).join("")}</div>`:""}
+      <div class="rf-panel hidden" id="rfPanel"></div></div>
+    <div class="hidden" id="readerTr" style="padding-bottom:20px"></div>
     <div class="reader m-${RMODE} ${RTR?"":"notr"}" id="reader">${(st.sentences||[]).map((s,i)=>`<div class="sent" data-i="${i}" data-zh="${esc(s.zh)}" data-vi="${esc(s.vi)}"><span class="no">${i+1}</span><div class="zhs zh">${storyLine(tok(s.zh),st)}</div><div class="vi">${esc(s.vi)}</div>
       <div class="acts"><button class="btn sm" data-ls="${i}">🔊 Nghe</button><button class="btn sm" data-sp="${i}">🎤 Luyện nói</button>${(()=>{ const n=grammarFor(s.zh,s.g,CUR_LANG).length; return n?`<button class="btn sm" data-gr="${i}">📐 Ngữ pháp (${n})</button>`:""; })()}</div><div class="gr-slot"></div><div class="spk-slot"></div></div>`).join("")}
-      <div class="card" id="quizBox"><h3 style="margin:0 0 4px">🏆 Quiz cuối bài</h3><div class="muted" style="font-size:14px">Kiểm tra ngay sau khi đọc.</div><div id="quizIn" style="margin-top:10px"><button class="btn p" id="quizGo">Bắt đầu quiz</button></div></div>
     </div>
+    <div class="card" id="quizBox" style="margin-bottom:90px"><h3 style="margin:0 0 4px">🏆 Quiz cuối bài</h3><div class="muted" style="font-size:14px">Kiểm tra ngay sau khi đọc.</div><div id="quizIn" style="margin-top:10px"><button class="btn p" id="quizGo">Bắt đầu quiz</button></div></div>
     <div class="pbar"><button id="pbPrev" title="Câu trước">⏮</button><button class="play" id="pbPlay">▶</button><button id="pbNext" title="Câu sau">⏭</button><button class="spd" id="pbSpd">0.85×</button><small>Nghe<br>cả bài</small></div>`;
-  const rd=$("#reader");
-  const setMode=v=>{ RMODE=v; store.set("srt_rmode",v); rd.className=`reader m-${v} ${RTR?"":"notr"}`; $("#rMode").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===v)); };
-  setMode(RMODE); $("#rMode").querySelectorAll("button").forEach(b=>b.onclick=()=>setMode(b.dataset.v));
-  $("#rTr").onclick=()=>{ RTR=!RTR; store.set("srt_rtr",RTR); $("#rTr").classList.toggle("on",RTR); rd.classList.toggle("notr",!RTR); };
+  const rd=$("#reader"), rf=$("#readerFull");
+  const setMode=v=>{ RMODE=v; store.set("srt_rmode",v); rd.className=`reader m-${v} ${RTR?"":"notr"} ${RVIEW==="sent"?"":"hidden"}`; rf.className=`reader rfull m-${v} ${RVIEW==="full"?"":"hidden"}`; $("#rMode").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===v)); };
+  const setView=v=>{ RVIEW=v; store.set("srt_rview",v); $("#rView").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.rv===v)); setMode(RMODE); $("#rGrAll").classList.toggle("hidden",v!=="sent");
+    const tr=$("#readerTr"); tr.classList.toggle("hidden",v!=="tr"); ["#rMode","#rTr"].forEach(q=>$(q).classList.toggle("hidden",v==="tr")); const lg=document.querySelector("#storyBody .legend"); if(lg) lg.classList.toggle("hidden",v==="tr");
+    if(v==="tr"){ stopStory(); if(!tr.innerHTML) renderTranslate(tr,(st.sentences||[]).map(x=>({zh:x.zh,vi:x.vi})),{lang:CUR_LANG,key:"s_"+st.id,onPlay:k=>{ stopStory(); say(st.sentences[k].zh,rRate); }}); } if(rPlaying) markSent(rIdx); };
+  $("#rView").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.rv));
+  setView(RVIEW); $("#rMode").querySelectorAll("button").forEach(b=>b.onclick=()=>setMode(b.dataset.v));
+  $("#rTr").onclick=()=>{ RTR=!RTR; store.set("srt_rtr",RTR); $("#rTr").classList.toggle("on",RTR); rd.classList.toggle("notr",!RTR); const fv=$("#rfVi"); if(fv) fv.classList.toggle("hidden",!RTR); const pv=$("#rfPanel .vi"); if(pv) pv.classList.toggle("hidden",!RTR); };
+  rf.querySelectorAll(".sf").forEach(el=>el.addEventListener("click",()=>{ if(rfSh.on||rfRd.on) return; stopStory(); rfShow(+el.dataset.i); }));
+  $("#rfSpd").value=String(rRate); $("#rfSpd").onchange=e=>{ rRate=+e.target.value; const b=$("#pbSpd"); if(b) b.textContent=rRate+"×"; };
+  $("#rfPlay").onclick=()=>{ rfStopAll(); if(rPlaying) stopStory(); else playStory(rIdx||0); };
+  $("#rfShadow").onclick=()=>{ if(rfSh.on){ rfStopAll(); return; } rfStopAll(); stopStory(); rfShadowRun(rIdx||0); };
+  $("#rfRead").onclick=()=>{ if(rfRd.on){ rfReadStop(); return; } rfStopAll(); stopStory(); rfReadStart(); };
+  $("#rfMine").onclick=()=>{ if(rfRd.url) new Audio(rfRd.url).play().catch(()=>{}); };
   bindSize($("#storyBody"));
   $("#rGrAll").onclick=()=>{ const btns=[...rd.querySelectorAll("[data-gr]")]; const anyClosed=btns.some(b=>!b.classList.contains("on")); btns.forEach(b=>{ if(b.classList.contains("on")!==anyClosed) b.click(); }); $("#rGrAll").textContent=anyClosed?"📐 Đóng tất cả ngữ pháp":"📐 Mở tất cả ngữ pháp"; };
   rd.querySelectorAll("[data-ls]").forEach(b=>b.onclick=()=>{ stopStory(); markSent(+b.dataset.ls); say(st.sentences[+b.dataset.ls].zh,rRate); });
@@ -2387,14 +2483,87 @@ function openStory(id){
   $("#pbSpd").onclick=()=>{ rRate=rRate===.85?.6:rRate===.6?1:.85; $("#pbSpd").textContent=rRate+"×"; };
   $("#quizGo").onclick=()=>storyQuiz(st);
 }
-function markSent(i){ rIdx=i; document.querySelectorAll(".sent").forEach(s=>s.classList.toggle("play",+s.dataset.i===i)); const el=document.querySelector(`.sent[data-i="${i}"]`); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); }
+function storyParas(st){ const out=[]; let cur=[]; (st.sentences||[]).forEach((x,i)=>{ if(x.pb&&cur.length){ out.push(cur); cur=[]; } cur.push(i); if(!(st.sentences.some(y=>y.pb))&&cur.length>=6&&/[。！？.!?]["”」』’]?$/.test(x.zh)){ out.push(cur); cur=[]; } }); if(cur.length) out.push(cur); return out; }
+function markSent(i,quiet){ rIdx=i; document.querySelectorAll(".sent,.sf,.sfv").forEach(s=>s.classList.toggle("play",+s.dataset.i===i)); if(quiet) return; const sel=RVIEW==="full"?`.sf[data-i="${i}"]`:`.sent[data-i="${i}"]`; const el=document.querySelector(sel); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); if(RVIEW==="full"&&!$("#rfPanel").classList.contains("hidden")) rfShow(i,true); }
+function rfShow(i,keep){ const st=STORY; if(!st||!st.sentences[i]) return; const pnl=$("#rfPanel"); if(!pnl) return; if(!keep) markSent(i,true); rIdx=i;
+  const s=st.sentences[i], n=grammarFor(s.zh,s.g,CUR_LANG).length;
+  pnl.classList.remove("hidden");
+  pnl.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b class="muted" style="font-size:13px">CÂU ${i+1}/${st.sentences.length}</b><button class="x" id="rfX" title="Đóng">×</button></div>
+    <div class="zhs zh">${storyLine(tok(s.zh),st)}</div>${s.vi?`<div class="vi ${RTR?"":"hidden"}">${esc(s.vi)}</div>`:""}
+    <div class="acts" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" id="rfPrev" ${i?"":"disabled"}>⏮</button><button class="btn sm p" id="rfSay">🔊 Nghe</button><button class="btn sm" id="rfSlow">🐢 Chậm</button><button class="btn sm" id="rfRec">⏺ Ghi âm</button><button class="btn sm hidden" id="rfMe">▶ Giọng tôi</button>${n?`<button class="btn sm" id="rfGr">📐 Ngữ pháp (${n})</button>`:""}${s.vi&&!RTR?`<button class="btn sm" id="rfTr">🇻🇳 Nghĩa</button>`:""}<button class="btn sm" id="rfNext" ${i<st.sentences.length-1?"":"disabled"}>⏭</button></div>
+    <div class="muted" style="font-size:12px;margin-top:4px" id="rfMsg"></div><div id="rfGrBox"></div>`;
+  pnl.className="rf-panel m-"+RMODE;
+  $("#rfX").onclick=()=>{ pnl.classList.add("hidden"); document.querySelectorAll(".sf.play,.sfv.play").forEach(x=>x.classList.remove("play")); };
+  $("#rfSay").onclick=()=>{ stopStory(); say(s.zh,rRate); }; $("#rfSlow").onclick=()=>{ stopStory(); say(s.zh,.55); };
+  $("#rfRec").onclick=e=>record(e.currentTarget,$("#rfMe"),$("#rfMsg")); $("#rfMe").onclick=()=>{ if(myURL) new Audio(myURL).play().catch(()=>{}); };
+  $("#rfPrev").onclick=()=>{ stopStory(); rfShow(i-1); const el=document.querySelector(`.sf[data-i="${i-1}"]`); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); };
+  $("#rfNext").onclick=()=>{ stopStory(); rfShow(i+1); const el=document.querySelector(`.sf[data-i="${i+1}"]`); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); };
+  const g=$("#rfGr"); if(g) g.onclick=()=>{ const b=$("#rfGrBox"); if(b.innerHTML){ b.innerHTML=""; g.classList.remove("on"); return; } b.innerHTML=`<div class="gr-box">${grHTML(grammarFor(s.zh,s.g,CUR_LANG))}</div>`; g.classList.add("on"); };
+  const t=$("#rfTr"); if(t) t.onclick=()=>{ const v=pnl.querySelector(".vi"); if(v) v.classList.toggle("hidden"); };
+}
 function playStory(i){
-  if(!STORY) return; stopStory(); rPlaying=true; const my=++rTok; $("#pbPlay").textContent="⏸"; markSent(i);
+  if(!STORY) return; stopStory(); rPlaying=true; const my=++rTok; $("#pbPlay").textContent="⏸"; { const f=$("#rfPlay"); if(f) f.textContent="⏸ Dừng nghe"; } markSent(i);
   const next=()=>{ if(my!==rTok) return; if(i<STORY.sentences.length-1) setTimeout(()=>{ if(my===rTok) playStory(i+1); },400); else { stopStory(); toast("Hết bài 🎉"); } };
   try{ const u=utter(STORY.sentences[i].zh,rRate); u.onend=next; speechSynthesis.speak(u); }catch(e){}
   setTimeout(()=>{ if(my===rTok&&rPlaying&&!speechSynthesis.speaking) next(); }, (STORY.sentences[i].zh.length*0.35/rRate+3)*1000);
 }
-function stopStory(){ rTok++; rPlaying=false; try{ speechSynthesis.cancel(); }catch(e){} const b=$("#pbPlay"); if(b) b.textContent="▶"; }
+function stopStory(){ rTok++; rPlaying=false; try{ speechSynthesis.cancel(); }catch(e){} const b=$("#pbPlay"); if(b) b.textContent="▶"; const f=$("#rfPlay"); if(f) f.textContent="▶ Nghe cả bài"; rfStopAll(true); }
+
+/* ---------- Cả bài: nghe rồi nói theo · tự đọc cả bài (chấm điểm) ---------- */
+const rfSh={on:false,tok:0,timer:null}, rfRd={on:false,rec:null,mr:null,chunks:[],txt:"",url:null,stream:null};
+function rfStatus(h){ const e=$("#rfStatus"); if(!e) return; e.classList.toggle("hidden",!h); e.innerHTML=h||""; }
+function rfStopAll(keepRead){ if(rfSh.on){ rfSh.on=false; rfSh.tok++; clearInterval(rfSh.timer); const b=$("#rfShadow"); if(b){ b.textContent="🗣 Nghe rồi nói theo"; b.classList.remove("on"); } rfStatus(""); document.querySelectorAll(".sf.turn").forEach(x=>x.classList.remove("turn")); try{ speechSynthesis.cancel(); }catch(e){} }
+  if(!keepRead&&rfRd.on) rfReadStop(); }
+function rfShadowRun(i){
+  const st=STORY; if(!st||!st.sentences.length) return; rfSh.on=true; const my=++rfSh.tok;
+  const b=$("#rfShadow"); if(b){ b.textContent="⏹ Dừng luyện"; b.classList.add("on"); }
+  const step=k=>{ if(my!==rfSh.tok||!rfSh.on) return; if(k>=st.sentences.length){ rfStopAll(); toast("🎉 Bạn đã nói theo hết cả bài!"); return; }
+    markSent(k); document.querySelectorAll(".sf.turn").forEach(x=>x.classList.remove("turn"));
+    rfStatus(`🔊 Nghe câu ${k+1}/${st.sentences.length}…`);
+    const text=st.sentences[k].zh, est=Math.max(1.6,[...text].length*(CJK(CUR_LANG)?0.32:0.075)/rRate+0.6);
+    let done=false; const after=()=>{ if(done||my!==rfSh.tok) return; done=true;
+      const el=document.querySelector(`.sf[data-i="${k}"]`); if(el) el.classList.add("turn");
+      let left=Math.ceil(est*1.25+1); rfStatus(`🎤 <b>Đến lượt bạn:</b> đọc to câu ${k+1} · <span id="rfLeft">${left}</span>s <button class="btn sm" id="rfSkip">Câu tiếp ⏭</button> <button class="btn sm" id="rfAgain">🔁 Nghe lại</button>`);
+      clearInterval(rfSh.timer);
+      const next=()=>{ clearInterval(rfSh.timer); if(my===rfSh.tok) step(k+1); };
+      $("#rfSkip").onclick=next; $("#rfAgain").onclick=()=>{ clearInterval(rfSh.timer); if(my===rfSh.tok) step(k); };
+      rfSh.timer=setInterval(()=>{ left--; const e=$("#rfLeft"); if(e) e.textContent=left; if(left<=0) next(); },1000); };
+    try{ speechSynthesis.cancel(); const u=utter(text,rRate); u.onend=after; speechSynthesis.speak(u); }catch(e){}
+    setTimeout(after,(est*1.8+2)*1000);
+  };
+  step(i);
+}
+function rfNorm(t){ return CJK(CUR_LANG)?[...String(t)].filter(c=>/[㐀-鿿぀-ヿ]/.test(c)):String(t).toLowerCase().replace(/[^\p{L}\p{N}\s']/gu," ").split(/\s+/).filter(Boolean); }
+function rfLcs(a,b){ if(!a.length||!b.length) return 0; let prev=new Array(b.length+1).fill(0); for(let i=1;i<=a.length;i++){ const cur=[0]; for(let j=1;j<=b.length;j++) cur[j]=a[i-1]===b[j-1]?prev[j-1]+1:Math.max(prev[j],cur[j-1]); prev=cur; } return prev[b.length]; }
+async function rfReadStart(){
+  const st=STORY; if(!st) return; rfRd.on=true; rfRd.txt=""; rfRd.chunks=[];
+  document.querySelectorAll(".sf").forEach(x=>x.classList.remove("good","okk","bad","turn"));
+  const b=$("#rfRead"); b.innerHTML='<span class="rec"></span>Đang nghe bạn đọc… bấm để dừng'; b.classList.add("on");
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  rfStatus(SR?"🎙 Hãy đọc to <b>cả bài</b> từ đầu. Đọc xong bấm <b>dừng</b> để xem câu nào đọc chuẩn.":"🎙 Đang ghi âm. Đọc to cả bài, xong bấm dừng rồi nghe lại giọng mình. (Trình duyệt này không chấm điểm được, hãy dùng Chrome hoặc Edge.)");
+  try{ rfRd.stream=await navigator.mediaDevices.getUserMedia({audio:true}); rfRd.mr=new MediaRecorder(rfRd.stream); rfRd.mr.ondataavailable=e=>rfRd.chunks.push(e.data);
+    rfRd.mr.onstop=()=>{ try{ rfRd.stream.getTracks().forEach(t=>t.stop()); }catch(e){} if(rfRd.url) URL.revokeObjectURL(rfRd.url); rfRd.url=URL.createObjectURL(new Blob(rfRd.chunks)); const m=$("#rfMine"); if(m) m.classList.remove("hidden"); };
+    rfRd.mr.start(); }catch(e){ rfRd.mr=null; if(!SR){ rfRd.on=false; b.textContent="🎙 Tự đọc cả bài"; b.classList.remove("on"); rfStatus("🔒 Trang này chưa được dùng micro. Hãy cho phép micro trong trình duyệt rồi thử lại."); return; } }
+  if(SR){ try{ const r=new SR(); rfRd.rec=r; r.lang=LANGS[CUR_LANG].tts; r.continuous=true; r.interimResults=true; let fin="";
+      r.onresult=ev=>{ let inter=""; for(let k=ev.resultIndex;k<ev.results.length;k++){ const t=ev.results[k][0].transcript; if(ev.results[k].isFinal) fin+=t+" "; else inter+=t; } rfRd.txt=fin+inter; rfLive(); };
+      r.onend=()=>{ if(rfRd.on){ try{ r.start(); }catch(e){} } };
+      r.onerror=e=>{ if(e.error==="not-allowed"||e.error==="service-not-allowed"){ rfRd.rec=null; rfStatus("🎙 Đang ghi âm (trình duyệt chặn nhận dạng giọng nói nên không chấm điểm được)."); } };
+      r.start(); }catch(e){ rfRd.rec=null; } }
+}
+function rfLive(){ const st=STORY; if(!st) return; const said=rfNorm(rfRd.txt); let pos=0;
+  st.sentences.forEach((x,i)=>{ const ref=rfNorm(x.zh); if(!ref.length) return; const seg=said.slice(pos,pos+Math.round(ref.length*1.6)+2); const m=rfLcs(ref,seg); const el=document.querySelector(`.sf[data-i="${i}"]`); if(m/ref.length>=0.5){ pos+=Math.max(1,Math.round(ref.length*0.9)); if(el) el.classList.add("turn"); } }); }
+function rfReadStop(){
+  rfRd.on=false; const b=$("#rfRead"); if(b){ b.textContent="🎙 Đọc lại cả bài"; b.classList.remove("on"); }
+  try{ if(rfRd.rec) rfRd.rec.stop(); }catch(e){} try{ if(rfRd.mr&&rfRd.mr.state==="recording") rfRd.mr.stop(); }catch(e){}
+  const st=STORY; if(!st) return; document.querySelectorAll(".sf.turn").forEach(x=>x.classList.remove("turn"));
+  if(!rfRd.rec&&!rfRd.txt){ rfStatus("✅ Đã ghi xong. Bấm <b>▶ Nghe giọng tôi</b> rồi so với <b>▶ Nghe cả bài</b>."); return; }
+  const said=rfNorm(rfRd.txt); let pos=0, tot=0, hit=0;
+  st.sentences.forEach((x,i)=>{ const ref=rfNorm(x.zh); if(!ref.length) return; const win=said.slice(Math.max(0,pos-2),pos+Math.round(ref.length*1.7)+3); const m=rfLcs(ref,win); const r=m/ref.length; tot+=ref.length; hit+=m;
+    const el=document.querySelector(`.sf[data-i="${i}"]`); if(el){ el.classList.remove("good","okk","bad"); el.classList.add(r>=0.85?"good":r>=0.5?"okk":"bad"); }
+    if(r>=0.3) pos+=Math.round(ref.length*Math.max(r,0.6)); });
+  const pct=tot?Math.round(hit/tot*100):0;
+  rfStatus(said.length?`📊 Máy nghe được khoảng <b>${pct}%</b> ${CJK(CUR_LANG)?"chữ":"từ"} đúng. <span class="lg good">Xanh</span> = chuẩn · <span class="lg okk">Vàng</span> = gần đúng · <span class="lg bad">Đỏ</span> = nên luyện lại (chạm vào câu để nghe mẫu). Đây là ước lượng của máy, chưa chấm thanh điệu.`:"🤔 Máy chưa nghe được gì. Kiểm tra micro, nói to và rõ hơn rồi thử lại.");
+}
 function storyQuiz(st){
   const kw=[...(st.keywords||[]),...(st.phrases||[])].filter(k=>k.vi); const Q=[];
   shuffle(kw).slice(0,4).forEach(k=>{ const o=shuffle(kw.filter(x=>x.w!==k.w)).slice(0,2).map(x=>x.vi); if(o.length===2) Q.push({q:`“<span class="zh">${esc(k.w)}</span>” nghĩa là gì?`,o:shuffle([k.vi,...o]),a:k.vi}); });
@@ -2408,14 +2577,14 @@ function storyQuiz(st){
 }
 /* ---------- Soạn truyện (Quản trị) ---------- */
 let STORY_PREVIEW=null;
-const pairsToText=a=>(a||[]).map(x=>x.zh+(x.vi||x.g?" | "+(x.vi||""):"")+(x.g?" | "+x.g:"")).join("\n");
+const pairsToText=a=>(a||[]).map((x,i)=>(x.pb&&i?"\n":"")+x.zh+(x.vi||x.g?" | "+(x.vi||""):"")+(x.g?" | "+x.g:"")).join("\n");
 const kwToText=a=>(a||[]).map(x=>[x.w,x.py||"",x.vi||""].join(" | ")).join("\n");
-const parsePairs=t=>t.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{ const a=l.split("|"); const o={zh:(a[0]||"").trim(),vi:(a[1]||"").trim()}; const g=(a.slice(2).join("|")||"").trim(); if(g) o.g=g.slice(0,400); return o; }).filter(x=>x.zh);
+const parsePairs=t=>{ const out=[]; let pb=false; t.split("\n").map(l=>l.trim()).forEach(l=>{ if(!l){ pb=out.length>0; return; } const a=l.split("|"); const o={zh:(a[0]||"").trim(),vi:(a[1]||"").trim()}; const g=(a.slice(2).join("|")||"").trim(); if(g) o.g=g.slice(0,400); if(!o.zh) return; if(pb) o.pb=true; pb=false; out.push(o); }); return out; };
 const parseKw=(t,lang)=>t.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{ const a=l.split("|").map(x=>x.trim()); return {w:a[0]||"",py:a[1]||autoPy(a[0]||"",lang),vi:a[2]||""}; }).filter(x=>x.w);
 function openStoryComposer(S, autoPick){
   const isNew=!S||!S.id; S=S||{level:LEVELS.find(l=>l.lang===storyLang).id,kind:storyKind!=="all"?storyKind:"story",emoji:RKINDS[storyKind]?RKINDS[storyKind].ic:"📖",status:"draft",sentences:[],keywords:[],phrases:[]};
   const m=modal(`<h3>${isNew?"＋ Soạn bài đọc mới":"✏️ Sửa bài đọc"}<button class="x" data-close>×</button></h3><div id="stMsg"></div>
-    <div class="drop" id="stDrop" style="margin-bottom:14px"><div style="font-size:26px">📄</div><b id="stDropT">Tải file bài đọc lên (truyện, báo…) để tự điền: kéo thả hoặc bấm để chọn</b><div class="muted" style="font-size:12px">TXT, Word (.docx), PDF · tự tách câu, ghép nghĩa tiếng Việt, đọc phần “Từ khóa:” / “Cụm từ:” nếu có</div><input type="file" id="stFile" hidden accept=".txt,.md,.docx,.pdf,.doc"></div>
+    <div class="drop" id="stDrop" style="margin-bottom:14px"><div style="font-size:26px">📄</div><b id="stDropT">Tải file bài đọc lên (truyện, báo…) để tự điền: kéo thả hoặc bấm để chọn</b><div class="muted" style="font-size:12px">TXT, Word (.docx), PDF (cả bản scan) hoặc ảnh chụp trang sách · tự tách câu, ghép nghĩa tiếng Việt, đọc phần “Từ khóa:” / “Cụm từ:” nếu có</div><input type="file" id="stFile" hidden accept=".txt,.md,.docx,.pdf,.doc,.jpg,.jpeg,.png,.webp"></div>
     <div class="row2"><div class="fld"><label>Tiêu đề (bằng ngoại ngữ)</label><input type="text" id="sZh" class="zh" maxlength="120"></div><div class="fld"><label>Tên tiếng Việt</label><input type="text" id="sVi" maxlength="120"></div></div>
     <div class="row2"><div class="fld"><label>Cấp độ</label><select id="sLv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===S.level?"selected":""}>${esc(l.full)}</option>`).join("")}</select></div><div class="fld"><label>Loại bài đọc</label><div style="display:flex;gap:8px"><select id="sKind">${Object.keys(RKINDS).map(k=>`<option value="${k}" ${kindOf(S)===k?"selected":""}>${RKINDS[k].ic} ${RKINDS[k].n}</option>`).join("")}</select><input type="text" id="sEm" maxlength="4" title="Biểu tượng" style="width:70px;text-align:center"></div></div></div>
     <div class="fld"><label>📖 Nội dung – mỗi dòng một câu</label><textarea id="sSen" style="min-height:160px" placeholder="周末，我和朋友去一家饭馆吃饭。 | Cuối tuần, mình và bạn đi ăn ở một quán ăn."></textarea><div class="hint">Câu ngoại ngữ | nghĩa tiếng Việt | ghi chú ngữ pháp (không bắt buộc). Tiếng Trung được tự nhận diện ngữ pháp, ghi chú của bạn sẽ hiện trước.</div></div>
@@ -2425,13 +2594,14 @@ function openStoryComposer(S, autoPick){
     <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn" data-close>Hủy</button><button class="btn" id="sPrev">👁 Xem trước</button><button class="btn p" id="sSave">💾 Lưu bài đọc</button></div>`, true);
   const drop=m.querySelector("#stDrop"), fin=m.querySelector("#stFile");
   const handle=async f=>{ const T=m.querySelector("#stDropT"); T.textContent="⏳ Đang đọc "+f.name+"…"; err("");
-    try{ const lv=m.querySelector("#sLv").value, lg=langOf(lv); const raw=await fileToText(f); const r=parseStoryText(raw,lg,f.name);
+    try{ const lv=m.querySelector("#sLv").value, lg=langOf(lv); const raw=await fileToText(f,lg,t=>{ T.textContent="⏳ "+t; }); const isOcr=fileToText.ocr; const r=parseStoryText(raw,lg,f.name);
       if(!r.sentences.length){ T.textContent="Kéo thả hoặc bấm để chọn file khác"; err("Không tìm thấy câu nào trong file. Hãy kiểm tra file có đúng ngôn ngữ của cấp độ đã chọn."); return; }
       m.querySelector("#sZh").value=r.zh; if(r.vi) m.querySelector("#sVi").value=r.vi;
       m.querySelector("#sSen").value=pairsToText(r.sentences); if(r.keywords.length) m.querySelector("#sKw").value=kwToText(r.keywords); if(r.phrases.length) m.querySelector("#sPh").value=kwToText(r.phrases);
       const noVi=r.sentences.filter(x=>!x.vi).length;
       T.innerHTML=`✅ Đã đọc <b>${esc(f.name)}</b>: ${r.sentences.length} câu${r.keywords.length?`, ${r.keywords.length} từ khóa`:""}${r.phrases.length?`, ${r.phrases.length} cụm từ`:""}. Kiểm tra lại rồi bấm Lưu.`;
-      if(noVi) m.querySelector("#stMsg").innerHTML=`<div class="note" style="margin-bottom:10px">${noVi} câu chưa có nghĩa tiếng Việt. Bạn thêm sau dấu | ở cuối mỗi dòng, ví dụ: <span class="zh">我叫阿兰。</span> | Mình tên là Lan.</div>`;
+      if(isOcr) m.querySelector("#stMsg").innerHTML=`<div class="note" style="margin-bottom:10px">🔍 File là <b>ảnh / bản scan</b> nên web đã tự nhận dạng chữ (bỏ dòng phiên âm in phía trên). Máy có thể đọc nhầm vài chữ: hãy dò lại với bản gốc, sửa chữ sai và thêm nghĩa tiếng Việt sau dấu | rồi mới đăng.</div>`;
+      else if(noVi) m.querySelector("#stMsg").innerHTML=`<div class="note" style="margin-bottom:10px">${noVi} câu chưa có nghĩa tiếng Việt. Bạn thêm sau dấu | ở cuối mỗi dòng, ví dụ: <span class="zh">我叫阿兰。</span> | Mình tên là Lan.</div>`;
     }catch(e){ T.textContent="Kéo thả hoặc bấm để chọn file khác"; err(e&&e.msg?e.msg:"Không đọc được file này. Hãy thử lưu lại thành TXT hoặc .docx."); } };
   drop.onclick=()=>fin.click(); fin.onchange=()=>{ if(fin.files[0]) handle(fin.files[0]); };
   drop.ondragover=e=>{ e.preventDefault(); drop.classList.add("over"); }; drop.ondragleave=()=>drop.classList.remove("over");
@@ -2452,7 +2622,7 @@ function openStoryComposer(S, autoPick){
 }
 function renderAdmStories(p){
   const list=STORIES_DB;
-  p.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><div class="muted">Bài đọc hiện ở mục 📰 Bài đọc, chia theo 📖 Truyện · 📰 Báo · 📄 Bài khác. 2 truyện mẫu có sẵn không sửa được.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="admUpSt">📤 Tải file bài đọc lên</button><select id="admStKind" title="Loại bài đọc tải lên" style="border:2px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff">${Object.keys(RKINDS).map(k=>`<option value="${k}">${RKINDS[k].ic} ${RKINDS[k].n}</option>`).join("")}</select><select id="admStLv" title="Cấp độ cho bài đọc tải lên" style="border:2px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff">${LEVELS.map(l=>`<option value="${l.id}">${esc(l.full)}</option>`).join("")}</select><label class="btn" title="Chọn nhiều file, mỗi file thành một bài đọc nháp">📚 Tải nhiều file<input type="file" id="admUpMany" multiple hidden accept=".txt,.md,.docx,.pdf"></label><button class="btn p" id="admNewSt">＋ Soạn bài đọc mới</button></div></div>
+  p.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px"><div class="muted">Bài đọc hiện ở mục 📰 Bài đọc, chia theo 📖 Truyện · 📰 Báo · 📄 Bài khác. 2 truyện mẫu có sẵn không sửa được.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="admUpSt">📤 Tải file bài đọc lên</button><select id="admStKind" title="Loại bài đọc tải lên" style="border:2px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff">${Object.keys(RKINDS).map(k=>`<option value="${k}">${RKINDS[k].ic} ${RKINDS[k].n}</option>`).join("")}</select><select id="admStLv" title="Cấp độ cho bài đọc tải lên" style="border:2px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff">${LEVELS.map(l=>`<option value="${l.id}">${esc(l.full)}</option>`).join("")}</select><label class="btn" title="Chọn nhiều file, mỗi file thành một bài đọc nháp">📚 Tải nhiều file<input type="file" id="admUpMany" multiple hidden accept=".txt,.md,.docx,.pdf,.jpg,.jpeg,.png,.webp"></label><button class="btn p" id="admNewSt">＋ Soạn bài đọc mới</button></div></div>
    <div class="note" style="margin-bottom:12px">📄 <b>Mẹo soạn file bài đọc:</b> dòng đầu là tiêu đề; mỗi câu ngoại ngữ một dòng, nghĩa tiếng Việt ở dòng ngay dưới (hoặc cùng dòng sau dấu |). Cuối file có thể thêm mục <b>Từ khóa:</b> và <b>Cụm từ:</b>, mỗi dòng <span class="zh">từ | phiên âm | nghĩa</span>.</div>`+
    (list.length?list.map(st=>`<div class="lrow"><div class="n">${esc(st.emoji||"📖")}</div><div class="tt"><b class="zh">${esc(st.zh)}</b> <span class="tag ${st.status==="pub"?"pub":"draft"}">${st.status==="pub"?"Đã đăng":"Nháp"}</span><div class="muted" style="font-size:13px">${RKINDS[kindOf(st)].ic} ${RKINDS[kindOf(st)].n} · ${esc(lvName(st.level))} · ${(st.sentences||[]).length} câu · ${(st.keywords||[]).length} từ khóa</div></div>
      <button class="btn sm" data-go="truyen-${esc(st.id)}">👁 Xem</button><button class="btn sm" data-est="${esc(st.id)}">✏️ Sửa</button><button class="btn sm red" data-dst="${esc(st.id)}">🗑</button></div>`).join(""):`<div class="empty"><div class="ic">📖</div>Chưa có bài đọc nào do bạn soạn.</div>`);
@@ -2461,15 +2631,201 @@ function renderAdmStories(p){
   $("#admUpMany").onchange=async e=>{ const files=[...e.target.files]; if(!files.length) return; if(!DB){ toast("Chưa kết nối được kho dữ liệu"); return; }
     const lv=$("#admStLv").value; let ok=0, bad=[];
     toast(`⏳ Đang đọc ${files.length} file…`);
-    for(const f of files){ try{ const r=parseStoryText(await fileToText(f),langOf(lv),f.name); if(!r.sentences.length) throw 0;
+    let lastT=0; const prog=(f,t)=>{ if(Date.now()-lastT>1500){ lastT=Date.now(); toast(`⏳ ${f.name}: ${t}`); } };
+    for(const f of files){ try{ const r=parseStoryText(await fileToText(f,langOf(lv),t=>prog(f,t)),langOf(lv),f.name); if(!r.sentences.length) throw {msg:`không tìm thấy câu ${LANGS[langOf(lv)].name} nào. Kiểm tra lại cấp độ đã chọn có đúng ngôn ngữ của file không.`};
         const kd=$("#admStKind").value; await DB.collection("stories").add({level:lv,kind:kd,zh:r.zh.slice(0,120),vi:(r.vi||"").slice(0,120),emoji:RKINDS[kd].ic,status:"draft",sentences:r.sentences.slice(0,200),keywords:r.keywords.slice(0,40),phrases:r.phrases.slice(0,20),updatedAt:Date.now()}); ok++; }
-      catch(x){ bad.push(f.name); } }
-    toast(`✅ Đã tạo ${ok} bài đọc nháp (${lvName(lv)})${bad.length?` · không đọc được: ${bad.join(", ")}`:""}`); e.target.value=""; };
+      catch(x){ bad.push([f.name,(x&&x.msg)||"không đọc được file."]); } }
+    e.target.value="";
+    if(!bad.length){ toast(`✅ Đã tạo ${ok} bài đọc nháp (${lvName(lv)})`); return; }
+    const mm=modal(`<h3>${ok?`✅ Đã tạo ${ok} bài đọc nháp`:"⚠️ Chưa tạo được bài đọc"}<button class="x" data-close>×</button></h3><p style="margin-top:0">${bad.length} file chưa đọc được:</p><div id="bdL"></div><div style="text-align:right;margin-top:12px"><button class="btn p" data-close>Đã hiểu</button></div>`);
+    mm.querySelector("#bdL").innerHTML=bad.map(()=>`<div class="lrow" style="margin-bottom:6px"><div class="tt"><b></b><div class="muted" style="font-size:13px"></div></div></div>`).join("");
+    mm.querySelectorAll("#bdL .lrow").forEach((r,i)=>{ r.querySelector("b").textContent=bad[i][0]; r.querySelector(".muted").textContent=bad[i][1]; }); };
   p.querySelectorAll("[data-est]").forEach(b=>b.onclick=()=>openStoryComposer(STORIES_DB.find(x=>x.id===b.dataset.est)));
   p.querySelectorAll("[data-dst]").forEach(b=>b.onclick=()=>{ const st=STORIES_DB.find(x=>x.id===b.dataset.dst); confirmBox("Xóa bài đọc?",`Bài đọc <b class="zh">${esc(st.zh)}</b> sẽ bị xóa vĩnh viễn.`,"Xóa",async()=>{ try{ await DB.doc("stories/"+st.id).delete(); toast("Đã xóa bài đọc"); }catch(e){ toast("Không xóa được"); } }); });
 }
 
 
+
+
+
+/* =====================================================================
+   LUYỆN DỊCH: học viên tự gõ bản dịch, so với bản tham khảo
+   ===================================================================== */
+const TRS={dir:store.get("srt_trdir","fv"),scope:store.get("srt_trscope","one")};
+function trStore(key){ return store.get("srt_tr_"+key,{})||{}; }
+function trSave(key,o){ store.set("srt_tr_"+key,o); }
+function trWords(t,lang){ t=String(t||"").toLowerCase().normalize("NFC");
+  if(CJK(lang)) return [...t].filter(c=>/[㐀-鿿぀-ヿ0-9]/.test(c));
+  return t.replace(/[^\p{L}\p{N}\s']/gu," ").split(/\s+/).filter(Boolean); }
+function trSim(a,b,lang){ const A=trWords(a,lang), B=trWords(b,lang); if(!A.length||!B.length) return 0;
+  const cnt={}; A.forEach(w=>cnt[w]=(cnt[w]||0)+1); let hit=0; B.forEach(w=>{ if(cnt[w]>0){ hit++; cnt[w]--; } });
+  const p=hit/B.length, r=hit/A.length; return p+r?Math.round(2*p*r/(p+r)*100):0; }
+function trMark(user,ref,lang){ const R=new Set(trWords(ref,lang)); if(CJK(lang)) return [...user].map(ch=>/[㐀-鿿぀-ヿ]/.test(ch)?`<span class="${R.has(ch)?"dk-ok":""}">${esc(ch)}</span>`:esc(ch)).join("");
+  return String(user).split(/(\s+)/).map(w=>{ const k=w.toLowerCase().replace(/[^\p{L}\p{N}']/gu,""); return k&&R.has(k)?`<span class="dk-ok">${esc(w)}</span>`:esc(w); }).join(""); }
+function renderTranslate(box, items, o){
+  const lang=o.lang||CUR_LANG, key=o.key; let i=o.start||0;
+  const draw=()=>{
+    const S=trStore(key); S.d=S.d||{}; S.r=S.r||{}; S.shown=S.shown||{};
+    const list=items.map((x,k)=>k).filter(k=>TRS.dir==="fv"||items[k].vi);
+    if(!list.length){ box.innerHTML='<div class="empty">Chưa có câu nào có nghĩa tiếng Việt để luyện dịch.</div>'; return; }
+    if(TRS.scope==="all") return drawAll(S,list);
+    if(!list.includes(i)) i=list[0];
+    const it=items[i], dk=TRS.dir+"_"+i, pos=list.indexOf(i), fv=TRS.dir==="fv";
+    const ref=fv?it.vi:it.zh, rated=Object.keys(S.r).filter(k=>k.startsWith(TRS.dir+"_")).length;
+    const toks=it.tokens||tok(it.zh);
+    let hints=toks.filter(t=>isWordy(t)).map(t=>[t,meanOf(t)]).filter(x=>x[1]).slice(0,10); if(!fv) hints=hints.map(h=>[Math.random(),h]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+    box.innerHTML=`<div class="dict trp">
+      ${scopeSeg()}<div class="seg" style="margin-bottom:10px"><button data-dir="fv" class="${fv?"on":""}">${LANGS[lang].flag} → 🇻🇳 Dịch sang tiếng Việt</button><button data-dir="vf" class="${fv?"":"on"}">🇻🇳 → ${LANGS[lang].flag} Dịch sang ${esc(LANGS[lang].name.replace("Tiếng ","tiếng "))}</button></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>🌐 Câu ${pos+1}/${list.length}</b><span class="muted" style="font-size:13px">Đã luyện ${rated}/${list.length}</span></div>
+      <div class="dict-dots">${list.map((k,n)=>{ const r=S.r[TRS.dir+"_"+k]; return `<button data-tk="${k}" class="${k===i?"on":""} ${r==="ok"?"g":r==="mid"?"y":r==="no"?"r":S.d[TRS.dir+"_"+k]?"t":""}">${n+1}</button>`; }).join("")}</div>
+      <div class="tr-src ${fv?"zh":""}">${fv?zhLine(toks):esc(it.vi)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px">${fv&&o.onPlay?`<button class="btn sm" id="trPlay">🔊 Nghe câu</button>`:""}${hints.length?`<button class="btn sm" id="trHintB">💡 Gợi ý từ</button>`:""}</div>
+      <div id="trHint" class="tr-hint hidden">${hints.map(h=>`<span class="chipx"><b class="zh">${esc(h[0])}</b> ${esc(h[1])}</span>`).join(" ")}</div>
+      <textarea id="trInp" class="${fv?"":"zh"}" style="min-height:90px;font-size:${fv?17:20}px;width:100%;box-sizing:border-box" placeholder="${fv?"Gõ bản dịch tiếng Việt của bạn…":"Gõ câu bằng "+esc(LANGS[lang].name.toLowerCase())+"…"}"></textarea>
+      <div class="muted" style="font-size:12px;margin-top:2px" id="trSv">${S.d[dk]?"💾 Đã lưu nháp trên máy này":""}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn p" id="trChk">✔ So với đáp án</button><button class="btn sm" id="trPrev" ${pos?"":"disabled"}>⏮</button><button class="btn sm" id="trNext" ${pos<list.length-1?"":"disabled"}>Câu tiếp ⏭</button></div>
+      <div id="trRes"></div></div>`;
+    const inp=box.querySelector("#trInp"); inp.value=S.d[dk]||"";
+    const showRes=()=>{ const S2=trStore(key); const v=(S2.d||{})[dk]||""; const out=box.querySelector("#trRes");
+      if(!(S2.shown||{})[dk]){ out.innerHTML=""; return; }
+      if(!ref){ out.innerHTML='<div class="note" style="margin-top:10px">Câu này chưa có bản dịch mẫu. Bạn tự đối chiếu với thầy cô nhé.</div>'; return; }
+      const sim=v?trSim(ref,v,fv?"vi":lang):0, r=(S2.r||{})[dk];
+      out.innerHTML=`<div class="tr-ans"><div class="muted" style="font-size:12px;font-weight:700">BẢN DỊCH THAM KHẢO</div><div class="${fv?"":"zh"}" style="font-size:${fv?17:20}px">${esc(ref)}</div>
+        ${v?`<div class="muted" style="font-size:12px;font-weight:700;margin-top:8px">BẢN CỦA BẠN · trùng ý khoảng ${sim}%</div><div class="${fv?"":"zh"}" style="font-size:${fv?16:19}px">${trMark(v,ref,fv?"vi":lang)}</div>`:""}
+        <div class="muted" style="font-size:12px;margin-top:6px">Chữ <span class="dk-ok">xanh</span> là chữ trùng với bản tham khảo. Dịch khác cách nói mà đúng ý vẫn là đúng: hãy tự đánh giá.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ${r==="ok"?"on":""}" data-rt="ok">😀 Đúng ý</button><button class="btn sm ${r==="mid"?"on":""}" data-rt="mid">🤔 Gần đúng</button><button class="btn sm ${r==="no"?"on":""}" data-rt="no">😅 Chưa đúng</button></div></div>`;
+      out.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>{ const S3=trStore(key); S3.r=S3.r||{}; S3.r[dk]=b.dataset.rt; trSave(key,S3); if(o.onRate) o.onRate(); const nx=list[pos+1]; if(b.dataset.rt!=="no"&&nx!=null){ i=nx; draw(); if(o.onPick) o.onPick(i); } else draw(); }); };
+    showRes();
+    let tmr=null; inp.oninput=()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ const S2=trStore(key); S2.d=S2.d||{}; S2.d[dk]=inp.value.slice(0,1000); trSave(key,S2); const sv=box.querySelector("#trSv"); if(sv) sv.textContent="💾 Đã lưu nháp trên máy này"; },400); };
+    bindTop();
+    box.querySelectorAll("[data-tk]").forEach(b=>b.onclick=()=>{ i=+b.dataset.tk; draw(); if(o.onPick) o.onPick(i); });
+    const pl=box.querySelector("#trPlay"); if(pl) pl.onclick=()=>o.onPlay(i);
+    const hb=box.querySelector("#trHintB"); if(hb) hb.onclick=()=>box.querySelector("#trHint").classList.toggle("hidden");
+    box.querySelector("#trChk").onclick=()=>{ const S2=trStore(key); S2.d=S2.d||{}; S2.shown=S2.shown||{}; S2.d[dk]=inp.value.slice(0,1000); S2.shown[dk]=true; trSave(key,S2); if(!inp.value.trim()) toast("Bạn chưa gõ gì, xem bản tham khảo trước nhé"); showRes(); };
+    box.querySelector("#trPrev").onclick=()=>{ i=list[pos-1]; draw(); if(o.onPick) o.onPick(i); };
+    box.querySelector("#trNext").onclick=()=>{ i=list[pos+1]; draw(); if(o.onPick) o.onPick(i); };
+    inp.onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); box.querySelector("#trChk").click(); } };
+  };
+  function scopeSeg(){ return `<div class="seg" style="margin:0 8px 10px 0"><button data-sc="one" class="${TRS.scope!=="all"?"on":""}">📑 Từng câu</button><button data-sc="all" class="${TRS.scope==="all"?"on":""}">📄 Cả bài</button></div>`; }
+  function bindTop(){
+    box.querySelectorAll("[data-dir]").forEach(b=>b.onclick=()=>{ TRS.dir=b.dataset.dir; store.set("srt_trdir",TRS.dir); draw(); if(o.onDir) o.onDir(); });
+    box.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ TRS.scope=b.dataset.sc; store.set("srt_trscope",TRS.scope); try{ speechSynthesis.cancel(); }catch(e){} draw(); if(o.onDir) o.onDir(); });
+  }
+  function drawAll(S,list){
+    const fv=TRS.dir==="fv", dk=TRS.dir+"_all", sep=CJK(lang)?"":" ";
+    const src=fv?list.map(k=>`<span class="sf" data-i="${k}">${zhLine(items[k].tokens||tok(items[k].zh))}</span>`).join(sep):list.map(k=>esc(items[k].vi)).join(" ");
+    const ref=fv?list.map(k=>items[k].vi||"").filter(Boolean).join(" "):list.map(k=>items[k].zh).join(sep);
+    const r=S.r[dk];
+    let hints=[]; const seen=new Set(); list.forEach(k=>(items[k].tokens||tok(items[k].zh)).forEach(t=>{ if(isWordy(t)&&!seen.has(t)){ const m=meanOf(t); if(m){ seen.add(t); hints.push([t,m]); } } })); hints=hints.slice(0,24); if(!fv) hints=hints.map(h=>[Math.random(),h]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+    box.innerHTML=`<div class="dict trp">
+      ${scopeSeg()}<div class="seg" style="margin-bottom:10px"><button data-dir="fv" class="${fv?"on":""}">${LANGS[lang].flag} → 🇻🇳 Dịch sang tiếng Việt</button><button data-dir="vf" class="${fv?"":"on"}">🇻🇳 → ${LANGS[lang].flag} Dịch sang ${esc(LANGS[lang].name.replace("Tiếng ","tiếng "))}</button></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>📄 Dịch cả bài · ${list.length} câu</b>${r?`<span class="muted" style="font-size:13px">Đã tự đánh giá: ${r==="ok"?"😀 Đúng ý":r==="mid"?"🤔 Gần đúng":"😅 Chưa đúng"}</span>`:""}</div>
+      <div class="tr-src tr-all ${fv?"zh":""}">${src}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px">${fv?`<button class="btn sm" id="trPlayAll">🔊 Nghe cả bài</button>`:""}${hints.length?`<button class="btn sm" id="trHintB">💡 Gợi ý từ</button>`:""}</div>
+      <div id="trHint" class="tr-hint hidden">${hints.map(h=>`<span class="chipx"><b class="zh">${esc(h[0])}</b> ${esc(h[1])}</span>`).join(" ")}</div>
+      <textarea id="trInp" class="${fv?"":"zh"}" style="min-height:220px;font-size:${fv?17:20}px;width:100%;box-sizing:border-box;line-height:1.7" placeholder="${fv?"Gõ bản dịch tiếng Việt cho cả bài…":"Gõ cả bài bằng "+esc(LANGS[lang].name.toLowerCase())+"…"}"></textarea>
+      <div class="muted" style="font-size:12px;margin-top:2px" id="trSv">${S.d[dk]?"💾 Đã lưu nháp trên máy này":""}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn p" id="trChk">✔ So với đáp án</button></div>
+      <div id="trRes"></div></div>`;
+    bindTop();
+    const inp=box.querySelector("#trInp"); inp.value=S.d[dk]||"";
+    let tmr=null; inp.oninput=()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ const S2=trStore(key); S2.d=S2.d||{}; S2.d[dk]=inp.value.slice(0,8000); trSave(key,S2); const sv=box.querySelector("#trSv"); if(sv) sv.textContent="💾 Đã lưu nháp trên máy này"; },400); };
+    const hb=box.querySelector("#trHintB"); if(hb) hb.onclick=()=>box.querySelector("#trHint").classList.toggle("hidden");
+    const pa=box.querySelector("#trPlayAll"); if(pa) pa.onclick=()=>{ try{ if(speechSynthesis.speaking){ speechSynthesis.cancel(); pa.textContent="🔊 Nghe cả bài"; return; } list.forEach((k,n)=>{ const u=utter(items[k].zh,.85); u.onstart=()=>{ box.querySelectorAll(".tr-all .sf").forEach(x=>x.classList.toggle("play",+x.dataset.i===k)); }; if(n===list.length-1) u.onend=()=>{ pa.textContent="🔊 Nghe cả bài"; box.querySelectorAll(".tr-all .sf").forEach(x=>x.classList.remove("play")); }; speechSynthesis.speak(u); }); pa.textContent="⏹ Dừng"; }catch(e){} };
+    const showRes=()=>{ const S2=trStore(key); const v=(S2.d||{})[dk]||""; const out=box.querySelector("#trRes"); if(!(S2.shown||{})[dk]){ out.innerHTML=""; return; }
+      if(!ref){ out.innerHTML='<div class="note" style="margin-top:10px">Bài này chưa có bản dịch mẫu.</div>'; return; }
+      const sim=v?trSim(ref,v,fv?"vi":lang):0, rr=(S2.r||{})[dk];
+      out.innerHTML=`<div class="tr-ans"><div class="muted" style="font-size:12px;font-weight:700">BẢN DỊCH THAM KHẢO</div><div class="${fv?"":"zh"}" style="font-size:${fv?16:19}px;line-height:1.8">${esc(ref)}</div>
+        ${v?`<div class="muted" style="font-size:12px;font-weight:700;margin-top:10px">BẢN CỦA BẠN · trùng ý khoảng ${sim}%</div><div class="${fv?"":"zh"}" style="font-size:${fv?16:19}px;line-height:1.8;white-space:pre-wrap">${trMark(v,ref,fv?"vi":lang)}</div>`:""}
+        <div class="muted" style="font-size:12px;margin-top:6px">Chữ <span class="dk-ok">xanh</span> là chữ trùng với bản tham khảo. Dịch khác cách nói mà đúng ý vẫn là đúng: hãy tự đánh giá. Muốn xem kỹ từng câu, chuyển sang <b>📑 Từng câu</b>.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ${rr==="ok"?"on":""}" data-rt="ok">😀 Đúng ý</button><button class="btn sm ${rr==="mid"?"on":""}" data-rt="mid">🤔 Gần đúng</button><button class="btn sm ${rr==="no"?"on":""}" data-rt="no">😅 Chưa đúng</button></div></div>`;
+      out.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>{ const S3=trStore(key); S3.r=S3.r||{}; S3.r[dk]=b.dataset.rt; trSave(key,S3); if(o.onRate) o.onRate(); draw(); }); };
+    showRes();
+    box.querySelector("#trChk").onclick=()=>{ const S2=trStore(key); S2.d=S2.d||{}; S2.shown=S2.shown||{}; S2.d[dk]=inp.value.slice(0,8000); S2.shown[dk]=true; trSave(key,S2); if(!inp.value.trim()) toast("Bạn chưa gõ gì, xem bản tham khảo trước nhé"); showRes(); };
+    inp.onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); box.querySelector("#trChk").click(); } };
+  }
+  draw();
+  return { go:k=>{ i=k; draw(); } };
+}
+let TR_V=null;
+function setTr(on){
+  stopAll(true); hideTurn(); SH.trMode=on;
+  ["#autoSeg","#grTog","#mode","#bLoop"].forEach(q=>{ const e=$(q); if(!e) return; const row=q==="#autoSeg"||q==="#grTog"?e.closest(".ctrl"):e; if(row) row.classList.toggle("hidden",on); });
+  const gb=$("#grBox"); if(gb) gb.classList.toggle("hidden",on||!SH.showGr);
+  $("#cuesWrap").classList.toggle("hidden",on); $("#trBox").classList.toggle("hidden",!on);
+  const g=document.querySelector("#vPlayer .guide"); if(g) g.innerHTML=on?"Nghe câu trong video rồi <b>tự gõ bản dịch</b> theo cách của bạn. Bấm <b>So với đáp án</b> để xem bản dịch tham khảo và tự đánh giá. Bản nháp tự lưu trên máy.":"Xem video, nghe từng câu rồi <b>nói theo ngay</b> (shadowing). Chạm vào từ trong phụ đề để tra nghĩa và thêm vào Thẻ nhớ.";
+  if(on){ const items=SH.cues.map(c=>({zh:c.tokens.join(""),vi:c.vi,tokens:c.tokens}));
+    TR_V=renderTranslate($("#trBox"),items,{lang:cueLang(),key:"v_"+(VCUR?VCUR.id:"x"),start:SH.idx,onPlay:k=>{ SH.idx=k; hiCue(); playCue(k); },onPick:k=>{ stopAll(true); SH.idx=k; hiCue(); },onDir:()=>drawCap()}); }
+  else { drawCues(); }
+  drawCap();
+}
+function setVMode(m){ if(SH.dict&&m!=="dict") setDict(false); if(SH.trMode&&m!=="tr") setTr(false); if(m==="dict"&&!SH.dict) setDict(true); if(m==="tr"&&!SH.trMode) setTr(true); if(m==="sh"){ drawCues(); drawCap(); } }
+
+/* =====================================================================
+   VIDEO: NGHE CHÉP CHÍNH TẢ
+   ===================================================================== */
+const DICT={shown:{},res:{},py:false};
+function setDict(on){
+  stopAll(true); hideTurn(); SH.dict=on; DICT.shown={};
+  ["#autoSeg","#grTog","#mode","#bLoop"].forEach(q=>{ const e=$(q); if(!e) return; const row=q==="#autoSeg"||q==="#grTog"?e.closest(".ctrl"):e; if(row) row.classList.toggle("hidden",on); });
+  const gb=$("#grBox"); if(gb) gb.classList.toggle("hidden",on||!SH.showGr);
+  $("#cuesWrap").classList.toggle("hidden",on); $("#dictBox").classList.toggle("hidden",!on);
+  const g=document.querySelector("#vPlayer .guide"); if(g) g.innerHTML=on?"Nghe từng câu rồi <b>gõ lại đúng những gì nghe được</b>. Bấm <b>Kiểm tra</b> để xem chữ đúng (xanh) và chữ sai hoặc thiếu (đỏ). Phụ đề được ẩn trong lúc chép.":"Xem video, nghe từng câu rồi <b>nói theo ngay</b> (shadowing). Chạm vào từ trong phụ đề để tra nghĩa và thêm vào Thẻ nhớ.";
+  if(on){ DICT.res={}; drawDict(); } else { drawCues(); }
+  drawCap();
+}
+function dictNorm(t,py){ t=String(t||"");
+  if(py) return t.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/ü/g,"v").toLowerCase().replace(/[^a-z]/g,"").split("");
+  if(CJK(cueLang())) return [...t].filter(c=>/[㐀-鿿぀-ヿ가-힯0-9]/.test(c));
+  return t.toLowerCase().replace(/[^\p{L}\p{N}\s']/gu," ").split(/\s+/).filter(Boolean); }
+function dictSyl(c){ const t=c.tokens.join(""); let arr=null; try{ if(window.pinyinPro) arr=pinyinPro.pinyin(t,{toneType:"none",type:"array"}); }catch(e){} if(!arr) arr=c.tokens.map(w=>pyOf(w)||"").join(" ").split(/\s+/); return arr.map(x=>dictNorm(x,true).join("")).filter(Boolean); }
+function dictRef(c){ return DICT.py?dictSyl(c).join(""):c.tokens.join(""); }
+function dictAlign(a,b){ // a: chuẩn, b: bạn gõ → mảng cờ đúng/sai cho từng phần tử của a
+  const n=a.length,m=b.length, L=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) L[i][j]=a[i]===b[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  const ok=new Array(n).fill(false); let i=0,j=0; while(i<n&&j<m){ if(a[i]===b[j]){ ok[i]=true; i++; j++; } else if(L[i+1][j]>=L[i][j+1]) i++; else j++; }
+  return ok; }
+function drawDict(){
+  const box=$("#dictBox"); if(!box) return; const N=SH.cues.length;
+  if(!N){ box.innerHTML='<p class="muted">Đang tải phụ đề…</p>'; return; }
+  const i=SH.idx, c=SH.cues[i], r=DICT.res[i]; const done=Object.keys(DICT.res).length;
+  const avg=done?Math.round(Object.values(DICT.res).reduce((a,x)=>a+x.pct,0)/done):0;
+  const zh=cueLang()==="zh";
+  box.innerHTML=`<div class="dict">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b>✍️ Câu ${i+1}/${N}</b><span class="muted" style="font-size:13px">Đã chép ${done}/${N}${done?` · trung bình ${avg}%`:""}</span></div>
+    <div class="dict-dots">${SH.cues.map((_,k)=>`<button data-dk="${k}" class="${k===i?"on":""} ${DICT.res[k]?(DICT.res[k].pct>=90?"g":DICT.res[k].pct>=60?"y":"r"):""}" title="Câu ${k+1}">${k+1}</button>`).join("")}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0"><button class="btn p sm" id="dPlay">🔊 Nghe câu</button><button class="btn sm" id="dSlow">🐢 Nghe chậm</button>${zh?`<label class="muted" style="font-size:13px;display:flex;gap:4px;align-items:center;margin-left:auto"><input type="checkbox" id="dPy" ${DICT.py?"checked":""}> Chép bằng pinyin</label>`:""}</div>
+    <textarea id="dIn" class="${DICT.py?"":"zh"}" placeholder="${DICT.py?"Gõ pinyin, không cần dấu thanh. VD: ni hao":"Gõ lại câu vừa nghe…"}" style="min-height:80px;font-size:20px;width:100%;box-sizing:border-box">${r?esc(r.input):""}</textarea>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn p" id="dCheck">✔ Kiểm tra</button><button class="btn sm" id="dHint">💡 Gợi ý 1 chữ</button><button class="btn sm" id="dShow">👁 Xem đáp án</button><button class="btn sm" id="dPrev" ${i?"":"disabled"}>⏮</button><button class="btn sm" id="dNext" ${i<N-1?"":"disabled"}>Câu tiếp ⏭</button></div>
+    <div id="dRes" style="margin-top:10px"></div></div>`;
+  const inp=$("#dIn");
+  const showRes=()=>{ const rr=DICT.res[i]; const out=$("#dRes"); if(!rr&&!DICT.shown[i]){ out.innerHTML=""; return; }
+    const ref=dictRef(c), refN=dictNorm(ref,DICT.py), ok=rr?rr.ok:refN.map(()=>false);
+    let k=0; const sameSet=CJK(cueLang())||DICT.py;
+    const marked=sameSet&&!DICT.py?[...ref].map(ch=>{ if(!/[㐀-鿿぀-ヿ가-힯0-9]/.test(ch)) return esc(ch); const good=ok[k++]; return `<span class="${good?"dk-ok":"dk-no"}">${esc(ch)}</span>`; }).join("")
+      :DICT.py?(()=>{ let k=0; return dictSyl(c).map(sy=>[...sy].map(ch=>`<span class="${ok[k++]?"dk-ok":"dk-no"}">${esc(ch)}</span>`).join("")).join(" "); })()
+      :refN.map((w,x)=>`<span class="${ok[x]?"dk-ok":"dk-no"}">${esc(w)}</span>`).join(" ");
+    out.innerHTML=`${rr?`<div class="dict-score ${rr.pct>=90?"g":rr.pct>=60?"y":"r"}">${rr.pct>=90?"🎉 Rất tốt!":rr.pct>=60?"👍 Gần đúng":"💪 Nghe lại thêm nhé"} · đúng ${rr.pct}%</div>`:""}
+      <div class="dict-ans ${DICT.py?"":"zh"}">${marked}</div>${DICT.py?`<div class="zh muted" style="font-size:16px;margin-top:4px">${esc(c.tokens.join(""))}</div>`:""}${c.vi?`<div class="muted" style="margin-top:4px">${esc(c.vi)}</div>`:""}
+      ${rr&&rr.pct<100?`<div class="muted" style="font-size:12px;margin-top:4px">Chữ <span class="dk-no">đỏ</span> là chữ bạn chép sai hoặc còn thiếu.</div>`:""}`; };
+  showRes();
+  $("#dPlay").onclick=()=>{ const r0=SH.rate; playCue(i); };
+  $("#dSlow").onclick=()=>{ const r0=SH.rate; SH.rate=0.6; playCue(i); setTimeout(()=>{ SH.rate=r0; },300); };
+  const dp=$("#dPy"); if(dp) dp.onchange=()=>{ DICT.py=dp.checked; DICT.res={}; DICT.shown={}; drawDict(); drawCap(); };
+  $("#dCheck").onclick=()=>{ const val=inp.value.trim(); if(!val){ toast("Hãy gõ câu bạn nghe được trước"); inp.focus(); return; }
+    const refN=dictNorm(dictRef(c),DICT.py), ok=dictAlign(refN,dictNorm(val,DICT.py)); const pct=refN.length?Math.round(ok.filter(Boolean).length/refN.length*100):0;
+    DICT.res[i]={input:val,ok,pct}; DICT.shown[i]=true; drawDict(); drawCap(); };
+  $("#dHint").onclick=()=>{ const refN=dictNorm(dictRef(c),DICT.py), have=dictNorm(inp.value,DICT.py); let k=0; while(k<have.length&&k<refN.length&&have[k]===refN[k]) k++; if(k>=refN.length){ toast("Bạn đã có đủ chữ rồi, bấm Kiểm tra"); return; }
+    if(CJK(cueLang())&&!DICT.py){ const ref=c.tokens.join(""); let cnt=0,pos=0; for(;pos<ref.length;pos++){ if(/[㐀-鿿぀-ヿ가-힯0-9]/.test(ref[pos])){ if(cnt===k) break; cnt++; } } inp.value=ref.slice(0,pos+1); }
+    else if(DICT.py) inp.value=refN.slice(0,k+1).join(""); else inp.value=refN.slice(0,k+1).join(" ")+" ";
+    inp.focus(); };
+  $("#dShow").onclick=()=>{ DICT.shown[i]=true; showRes(); drawCap(); };
+  $("#dPrev").onclick=()=>{ stopAll(true); SH.idx=i-1; hiCue(); drawDict(); };
+  $("#dNext").onclick=()=>{ stopAll(true); SH.idx=i+1; hiCue(); drawDict(); setTimeout(()=>playCue(SH.idx),150); };
+  box.querySelectorAll("[data-dk]").forEach(b=>b.onclick=()=>{ stopAll(true); SH.idx=+b.dataset.dk; hiCue(); drawDict(); });
+  inp.onkeydown=e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); $("#dCheck").click(); } };
+  if(done===N&&N>1&&!DICT._cele){ DICT._cele=true; toast(`🏁 Xong cả video! Trung bình đúng ${avg}%`); }
+}
 
 /* =====================================================================
    DUYỆT KHÓA HỌC: học viên gửi yêu cầu theo cấp độ, quản trị viên duyệt
@@ -2554,9 +2910,11 @@ function openVideo(id){
   box.innerHTML=`<div class="vhead"><button class="btn sm" data-go="video">← Danh sách video</button><div><h2 style="margin:0">${esc(v.title)}</h2>${v.vi?`<div class="muted">${esc(v.vi)}</div>`:""}
       <div class="vchips"><span class="chipx">${VCATS[v.cat].ic} ${VCATS[v.cat].n}: ${esc(vLabel(v))}</span>${v.cat!=="lesson"?`<span class="chipx">${esc(lvName(v.level))}</span>`:""}${L?`<button class="chipx zh" style="cursor:pointer" data-go="lesson-${esc(L.id)}">📘 Mở bài: ${esc(L.zh||"")}</button>`:""}</div></div>
       ${canTeach()&&!v.fromDoc?`<button class="btn sm" id="vEdit">✏️ Sửa video</button>`:""}</div>
+    ${hasSub(v)?`<div class="vtabs" id="vModeTabs" style="margin:14px 0 0"><button data-vm="sh" class="on">🎧 Xem & nói theo</button><button data-vm="dict">✍️ Nghe chép chính tả</button><button data-vm="tr">🌐 Luyện dịch</button></div>`:""}
     <div id="vPlayer" style="margin-top:14px"></div>
     ${rel.length?`<h3 class="sec-t">🎞 Video cùng ${v.cat==="lesson"?"cấp độ":v.cat==="topic"?"chủ đề":"mục bài hát"}</h3><div class="vgrid">${rel.map(vCard).join("")}</div>`:""}`;
-  rShadow($("#vPlayer"),{video:v});
+  SH.dict=false; SH.trMode=false; rShadow($("#vPlayer"),{video:v});
+  const vt=$("#vModeTabs"); if(vt) vt.querySelectorAll("button").forEach(b=>b.onclick=()=>{ vt.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); setVMode(b.dataset.vm); });
   const ed=$("#vEdit"); if(ed) ed.onclick=()=>openVideoComposer(VIDEOS_DB.find(x=>x.id===v.id));
 }
 function renderAdmVideos(p){
@@ -2880,8 +3238,48 @@ function renderHome(){
    ===================================================================== */
 const _scripts={};
 function loadScript(url){ if(_scripts[url]) return _scripts[url]; _scripts[url]=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=url; s.onload=()=>res(true); s.onerror=()=>{ delete _scripts[url]; rej(new Error("load")); }; document.head.appendChild(s); }); return _scripts[url]; }
-async function fileToText(f){
+const OCR_LANG={zh:"chi_sim",ja:"jpn",ko:"kor",en:"eng",de:"deu",es:"spa",fr:"fra",ru:"rus"};
+const IMG_EXT=["jpg","jpeg","png","webp","bmp"];
+function ocrClean(t,lang){
+  let lines=String(t||"").replace(/\r/g,"").split("\n").map(l=>l.trim()).filter(Boolean);
+  if(CJK(lang)||lang==="ko"){
+    const scr=lang==="ko"?/[\uac00-\ud7af]/g:/[\u3400-\u9fff\u3040-\u30ff]/g;
+    lines=lines.filter(l=>{ const h=(l.match(scr)||[]).length, la=(l.match(/[A-Za-z\u00c0-\u024f]/g)||[]).length; return h>=2&&h>=la; });
+    lines=lines.map(l=>l.replace(/[A-Za-z0-9@#$%^&*_=+<>|\\/~`\-]+/g," ").trim());
+    if(lang!=="ko") lines=lines.map(l=>l.replace(/\s+/g,"").replace(/,/g,"，").replace(/"/g,"”"));
+    const all=lines.join(lang==="ko"?" ":"");
+    return (all.match(/[^。！？!?]+[。！？!?]+[”"」』’]?|[^。！？!?]+$/g)||[]).map(x=>x.trim()).filter(x=>[...x].length>1&&(/[。！？!?”"」』’]$/.test(x)||[...x].length>4)).join("\n");
+  }
+  const all=lines.join(" ").replace(/(\w)-\s+(\w)/g,"$1$2").replace(/\s+/g," ");
+  return (all.match(/[^.!?]+[.!?]+["”»']?|[^.!?]+$/g)||[]).map(x=>x.trim()).filter(x=>x.length>1).join("\n");
+}
+async function ocrPrep(src){
+  let bmp=src; if(src instanceof Blob){ try{ bmp=await createImageBitmap(src); }catch(e){ return src; } }
+  const w0=bmp.width, h0=bmp.height, k=Math.max(1,Math.min(3,2000/Math.max(1,w0)));
+  const cv=document.createElement("canvas"); cv.width=Math.round(w0*k); cv.height=Math.round(h0*k);
+  const cx=cv.getContext("2d"); cx.imageSmoothingQuality="high"; cx.drawImage(bmp,0,0,cv.width,cv.height);
+  try{ const im=cx.getImageData(0,0,cv.width,cv.height), d=im.data, n=d.length/4, hist=new Array(256).fill(0), g=new Uint8Array(n);
+    for(let i=0;i<n;i++){ const v=(d[i*4]*0.299+d[i*4+1]*0.587+d[i*4+2]*0.114)|0; g[i]=v; hist[v]++; }
+    let sum=0; for(let i=0;i<256;i++) sum+=i*hist[i]; let sB=0,wB=0,best=0,th=150;
+    for(let t=0;t<256;t++){ wB+=hist[t]; if(!wB) continue; const wF=n-wB; if(!wF) break; sB+=t*hist[t]; const mB=sB/wB, mF=(sum-sB)/wF, b=wB*wF*(mB-mF)*(mB-mF); if(b>best){ best=b; th=t; } }
+    for(let i=0;i<n;i++){ const v=g[i]>th?255:0; d[i*4]=d[i*4+1]=d[i*4+2]=v; d[i*4+3]=255; }
+    cx.putImageData(im,0,0); }catch(e){}
+  return cv;
+}
+async function ocrImages(imgs, lang, onProg){
+  try{ await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"); }catch(e){ throw {msg:"Không tải được bộ nhận dạng chữ. Kiểm tra mạng rồi thử lại."}; }
+  let cur=0; const say=t=>{ try{ onProg&&onProg(t); }catch(e){} };
+  say("Đang tải bộ nhận dạng chữ (lần đầu hơi lâu)…");
+  let w; try{ w=await Tesseract.createWorker(OCR_LANG[lang]||"eng",1,{logger:m=>{ if(m.status==="recognizing text") say(`Đang nhận dạng chữ ${imgs.length>1?`trang ${cur+1}/${imgs.length} `:""}… ${Math.round((m.progress||0)*100)}%`); }}); }
+  catch(e){ throw {msg:"Không khởi động được bộ nhận dạng chữ trên trình duyệt này."}; }
+  try{ await w.setParameters({tessedit_pageseg_mode:"6"}); }catch(e){}
+  const out=[]; try{ for(cur=0;cur<imgs.length;cur++){ const r=await w.recognize(await ocrPrep(imgs[cur])); out.push((r&&r.data&&r.data.text)||""); } } finally { try{ await w.terminate(); }catch(e){} }
+  return out.join("\n");
+}
+async function fileToText(f, lang, onProg){
+  lang=lang||CUR_LANG||"zh"; fileToText.ocr=false;
   const ext=extOf(f.name);
+  if(IMG_EXT.includes(ext)){ const t=ocrClean(await ocrImages([f],lang,onProg),lang); fileToText.ocr=true; if(!t.replace(/\s/g,"")) throw {msg:"Không nhận dạng được chữ trong ảnh. Hãy chụp rõ, thẳng và đủ sáng hơn."}; return t; }
   if(["txt","md","csv","srt","vtt"].includes(ext)) return await f.text();
   if(ext==="docx"){
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
@@ -2890,12 +3288,21 @@ async function fileToText(f){
   if(ext==="pdf"){
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js");
-    const lib=window.pdfjsLib; const doc=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false}).promise;
+    const lib=window.pdfjsLib; const PD="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/";
+    let doc; try{ doc=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false,cMapUrl:PD+"cmaps/",cMapPacked:true,standardFontDataUrl:PD+"standard_fonts/"}).promise; }
+    catch(e){ throw {msg:/password/i.test(e&&e.name||"")||/password/i.test(e&&e.message||"")?"PDF đang đặt mật khẩu. Hãy bỏ mật khẩu rồi tải lại.":"Không mở được file PDF này (file có thể bị lỗi)."}; }
     let out=[]; for(let i=1;i<=doc.numPages;i++){ const pg=await doc.getPage(i); const tc=await pg.getTextContent(); let line="", lastY=null; tc.items.forEach(it=>{ const y=it.transform[5]; if(lastY!==null&&Math.abs(y-lastY)>3){ out.push(line); line=""; } line+=it.str; lastY=y; }); out.push(line); }
-    return out.join("\n");
+    const txt=out.join("\n");
+    if(txt.replace(/\s/g,"").length>=Math.max(8,doc.numPages*6)) return txt;
+    // PDF scan / ảnh chụp: vẽ từng trang rồi nhận dạng chữ (OCR)
+    const N=Math.min(doc.numPages,30), imgs=[];
+    for(let i=1;i<=N;i++){ try{ onProg&&onProg(`Đang chuẩn bị trang ${i}/${N}…`); }catch(e){} const pg=await doc.getPage(i); const vp=pg.getViewport({scale:2.2}); const cv=document.createElement("canvas"); cv.width=Math.ceil(vp.width); cv.height=Math.ceil(vp.height); await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise; imgs.push(cv); }
+    const t=ocrClean(await ocrImages(imgs,lang,onProg),lang); fileToText.ocr=true;
+    if(!t.replace(/\s/g,"")) throw {msg:"Không nhận dạng được chữ trong PDF này. Hãy dùng bản rõ nét hơn, hoặc file Word / TXT."};
+    return t;
   }
   if(ext==="doc") throw {msg:"File .doc (Word cũ) chưa đọc được. Hãy lưu lại thành .docx hoặc PDF."};
-  throw {msg:"Chỉ hỗ trợ file TXT, Word (.docx) và PDF."};
+  throw {msg:"Chỉ hỗ trợ file TXT, Word (.docx), PDF và ảnh (JPG, PNG)."};
 }
 const VI_RE=/[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i;
 const isViLine=l=>VI_RE.test(l)&&!hasHan(l);
@@ -2964,8 +3371,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
