@@ -1,7 +1,7 @@
 # Hướng dẫn nối Supabase cho 舒如天上星
 
 Làm 1 lần, khoảng 20–30 phút. Sau khi xong: đăng nhập bằng Gmail + mật khẩu + mã OTP, đăng nhập Google,
-tài liệu / bài học / truyện / học viên lưu chung, phân quyền Quản trị viên – Giáo viên – Học viên.
+tài liệu / bài học / bài đọc / video / học viên lưu chung, phân quyền Quản trị viên – Giáo viên – Học viên.
 
 ---
 
@@ -72,3 +72,8 @@ PDF, ảnh, video MP4/WebM, **Word, PowerPoint, Excel, MP3**, TXT… tối đa *
 - Không nhận được email OTP → xem mục Spam; kiểm tra Bước 4; gói miễn phí giới hạn số email/giờ.
 - Đăng nhập Google báo lỗi redirect → kiểm tra Site URL / Redirect URLs (Bước 4.3) và redirect URI (Bước 5.2).
 - Vào được web nhưng không thấy Khu quản trị → chạy lại lệnh ở Bước 6 đúng email đã đăng ký.
+
+
+## Mỗi khi có bản mới (Video, Duyệt khóa học…)
+Bản mới có thể cần thêm quy tắc trong cơ sở dữ liệu:
+**SQL Editor → New query → dán lại toàn bộ `supabase-setup.sql` → Run.** Chạy lại không mất dữ liệu cũ.

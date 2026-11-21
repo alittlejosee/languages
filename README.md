@@ -5,9 +5,9 @@ Web học ngoại ngữ: Tiếng Trung, Nhật, Anh, Đức, Tây Ban Nha, Nga, 
 ## Phân quyền (một web chung)
 | Vai trò | Được làm |
 |---|---|
-| 🛠 Quản trị viên | Toàn quyền: học viên, phân loại lớp, tài liệu, bài học, truyện, thông tin giới thiệu, phân quyền |
-| 🧑‍🏫 Giáo viên | Tải tài liệu & đề thi, soạn bài học, soạn truyện |
-| 🎓 Học viên | Đăng ký tài khoản rồi vào học: bài học, video shadowing, truyện, tập viết, sổ từ, tài liệu |
+| 🛠 Quản trị viên | Toàn quyền: học viên, phân loại lớp, tài liệu, bài học, bài đọc, video, duyệt cấp độ, thông tin giới thiệu, phân quyền |
+| 🧑‍🏫 Giáo viên | Tải tài liệu & đề thi, soạn bài học, soạn bài đọc, thêm video |
+| 🎓 Học viên | Đăng ký tài khoản rồi vào học: bài học, video, bài đọc (truyện, báo), tập viết, sổ từ, tài liệu |
 
 ## Các file
 | File | Dùng để |
