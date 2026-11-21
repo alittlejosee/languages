@@ -2232,7 +2232,9 @@ const DEFAULT_PROFILE={name:"舒如天上星",zalo:"",slogan:"Giới thiệu ng�
 const CT_ICONS={facebook:"👤",zalo:"💬",fanpage:"🏫",group:"📚",youtube:"▶️",tiktok:"🎵",web:"🌐",email:"✉️",scholarship:"🎓"};
 function safeUrl(u){ u=String(u||"").trim(); if(/^\+?\d[\d\s.]{7,}$/.test(u)) return "https://zalo.me/"+u.replace(/[^\d]/g,""); if(!/^https?:\/\//i.test(u)) { if(/^[\w-]+(\.[\w-]+)+(\/.*)?$/.test(u)) u="https://"+u; else return ""; } try{ const x=new URL(u); return (x.protocol==="https:"||x.protocol==="http:")?x.href:""; }catch(e){ return ""; } }
 function profileData(){ const P=Object.assign({},DEFAULT_PROFILE,PROFILE||{}); if(PROFILE&&PROFILE.bio&&!PROFILE.slogan) P.slogan=PROFILE.bio; if(Array.isArray(P.stats)) P.stats=P.stats.map(x=>Array.isArray(x)?x:[(x&&x.l)||"",(x&&x.v)||""]); if(!Array.isArray(P.stats)||P.stats.length!==4) P.stats=DEFAULT_PROFILE.stats; return P; }
-function dbErrMsg(e){ const m=String((e&&(e.message||e.code))||e||""); if(/row-level|permission|policy|not allowed|forbidden|denied|invalid_argument/i.test(m)) return "Tài khoản này chưa có quyền ghi trên máy chủ. Hãy kiểm tra đã chạy lệnh set_role cho Gmail của bạn và chạy lại file supabase-setup.sql, rồi đăng xuất và đăng nhập lại."; if(/does not exist|relation/i.test(m)) return "Cơ sở dữ liệu chưa được cài: hãy chạy file supabase-setup.sql trong Supabase."; if(/size|large|quota/i.test(m)) return "Dữ liệu hoặc file quá lớn."; if(/fetch|network|failed to/i.test(m)) return "Mất kết nối mạng, hãy thử lại."; return "Không lưu được"+(m?" ("+m.slice(0,140)+")":"")+". Hãy thử lại."; }
+async function sbDiag(){ if(!SB_ON||!SB) return ""; try{ const {data:u}=await SB.auth.getUser(); const {data:r,error}=await SB.rpc("my_role"); return `Máy chủ nhận: ${u&&u.user?u.user.email:"CHƯA ĐĂNG NHẬP (phiên đã hết hạn)"} · vai trò trên máy chủ: ${error?"không đọc được ("+error.message+")":r}`; }catch(x){ return ""; } }
+function dbErrMsg(e){ const m0=String((e&&(e.message||e.code))||e||""); setTimeout(()=>{ sbDiag().then(t=>{ if(!t) return; document.querySelectorAll("#modalRoot .err").forEach(el=>{ if(!el.querySelector(".diag")) el.insertAdjacentHTML("beforeend",`<div class="diag" style="font-size:12px;margin-top:6px;opacity:.85">🔍 ${esc(t)}</div>`); }); }); },50); return dbErrMsg2(m0); }
+function dbErrMsg2(m){ const raw=m?` (Chi tiết: ${m.slice(0,160)})`:""; if(/row-level|permission|policy|not allowed|forbidden|denied|invalid_argument/i.test(m)) return "Máy chủ từ chối lưu: tài khoản chưa có quyền ghi."+raw; if(/does not exist|relation/i.test(m)) return "Cơ sở dữ liệu chưa được cài: hãy chạy file supabase-setup.sql trong Supabase."; if(/size|large|quota/i.test(m)) return "Dữ liệu hoặc file quá lớn."; if(/fetch|network|failed to/i.test(m)) return "Mất kết nối mạng, hãy thử lại."; return "Không lưu được"+(m?" ("+m.slice(0,140)+")":"")+". Hãy thử lại."; }
 function profileContacts(P){ const out=[]; if(P.zalo&&safeUrl(P.zalo)) out.push({label:"Zalo",sub:P.zalo,url:P.zalo,icon:"zalo"}); if(P.fbUrl&&safeUrl(P.fbUrl)) out.push({label:"Facebook cá nhân",sub:P.fbName||"",url:P.fbUrl,icon:"facebook"}); (P.contacts||[]).filter(c=>safeUrl(c.url)).forEach(c=>out.push(c)); return out; }
 function renderGV(){
   const P=profileData(); const cts=profileContacts(P);
@@ -3512,8 +3514,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
