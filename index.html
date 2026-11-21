@@ -3623,8 +3623,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
@@ -3662,7 +3662,10 @@ function makeSbAssets(sb){
     async list(){ return {assets:[],usage:{}}; }
   };
 }
-const SB_ERR=m=>{ m=String(m||""); if(/invalid login/i.test(m)) return "Sai email hoặc mật khẩu."; if(/already registered|already exists/i.test(m)) return "Email này đã có tài khoản. Hãy chuyển sang tab Đăng nhập."; if(/expired|invalid/i.test(m)&&/token|otp/i.test(m)) return "Mã OTP sai hoặc đã hết hạn. Hãy gửi lại mã."; if(/security purposes|rate limit|too many/i.test(m)) return "Bạn thao tác quá nhanh. Hãy đợi khoảng 60 giây rồi thử lại."; if(/not confirmed/i.test(m)) return "Email chưa được xác thực. Hãy nhập mã OTP đã gửi về Gmail."; if(/password/i.test(m)&&/6|short|weak/i.test(m)) return "Mật khẩu cần ít nhất 6 ký tự."; return "Có lỗi: "+m; };
+const SB_ERR=m=>{ m=String(m||""); if(/invalid login/i.test(m)) return "Sai email hoặc mật khẩu."; if(/already registered|already exists/i.test(m)) return "Email này đã có tài khoản. Hãy chuyển sang tab Đăng nhập."; if(/expired|invalid/i.test(m)&&/token|otp/i.test(m)) return "Mã OTP sai hoặc đã hết hạn. Hãy gửi lại mã."; if(/not authorized|not allowed for this|email address .* not/i.test(m)) return "Máy chủ chưa được phép gửi mã tới Gmail này (Supabase chưa cài máy chủ gửi thư riêng). Hãy báo quản trị viên 舒如天上星.";
+  if(/email rate limit/i.test(m)) return "Hệ thống đã gửi quá nhiều mã trong giờ này. Hãy thử lại sau ít phút hoặc báo quản trị viên.";
+  if(/security purposes|rate limit|too many/i.test(m)) return "Bạn thao tác quá nhanh. Hãy đợi khoảng 60 giây rồi thử lại.";
+  if(/sending.*email|smtp|error sending/i.test(m)) return "Máy chủ không gửi được thư. Quản trị viên cần kiểm tra cài đặt SMTP trong Supabase."; if(/not confirmed/i.test(m)) return "Email chưa được xác thực. Hãy nhập mã OTP đã gửi về Gmail."; if(/password/i.test(m)&&/6|short|weak/i.test(m)) return "Mật khẩu cần ít nhất 6 ký tự."; return "Có lỗi: "+m; };
 let sbTab="login", sbPending=false, sbTimer=null;
 function sbGoIn(){ if(window._sbGoing) return; window._sbGoing=true; try{ sessionStorage.removeItem("srt_pw_reset"); }catch(e){} const u=location.pathname+location.search; if(location.hash){ location.href=u; setTimeout(()=>location.reload(),600); } else location.reload(); }
 function renderRegSB(){
