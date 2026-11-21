@@ -815,6 +815,8 @@ body.guest #accName:before{font-size:13px}
 .dict-dots button.t{background:#eef0ff}
 .tr-all{max-height:340px;overflow:auto;line-height:2.1;font-size:20px}
 .tr-all .sf.play{background:var(--p-soft);border-radius:6px}
+.fill-in{border:none;border-bottom:2px solid var(--p);background:var(--p-softer);font:inherit;font-size:inherit;text-align:center;padding:0 6px;margin:0 3px;border-radius:6px 6px 0 0;min-width:3em;outline:none}
+.fill-in.ok{border-color:#2f9e6e;background:#d9f3e4}.fill-in.no{border-color:#e5536b;background:#fde0e4}
 </style>
 </head>
 <body>
@@ -1448,11 +1450,12 @@ async function renderLearners(p, list, tab){
   if(curView()!=="admin"||$("#apanel")!==p) return;
   const total=ORDER().length*Math.max(1,allLessonsAll().filter(l=>l.status==="pub").length);
   const pendHere=pendingReqs().filter(x=>list.some(l=>l.id===x.l.id));
-  p.innerHTML=(pendHere.length?`<div class="acc-lock wait" style="text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><span style="font-size:26px">⏳</span><div style="flex:1;min-width:200px"><b>${pendHere.length} yêu cầu học đang chờ duyệt</b><div class="muted" style="font-size:13px">Bấm ✓ để duyệt, ✕ để từ chối ngay trong cột “Quyền học”. Bấm ⚙️ để tự tích các cấp độ cho học viên.</div></div>${pendHere.length>1?`<button class="btn p sm" id="apAllHere">✅ Duyệt tất cả</button>`:""}</div>`:"")+`<table class="t"><tr><th>Học viên</th><th>Liên hệ</th><th>Khóa học</th><th>Quyền học</th><th>Lần cuối vào học</th><th>Số ngày</th><th>Tiến độ</th><th>Phân loại</th><th>Lớp / Ghi chú</th></tr>${list.sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(l=>{ const pf=l.profile||{}; const r=Object.assign({type:pf.studied?"center":"outside",cls:pf.cls||""},ROSTER[l.id]||{}); const pr=ps[l.id]||{}; const pct=Math.min(100,Math.round((l.steps||0)/total*100));
+  p.innerHTML=(pendHere.length?`<div class="acc-lock wait" style="text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><span style="font-size:26px">⏳</span><div style="flex:1;min-width:200px"><b>${pendHere.length} yêu cầu học đang chờ duyệt</b><div class="muted" style="font-size:13px">Bấm ✓ để duyệt, ✕ để từ chối ngay trong cột “Quyền học”. Bấm ⚙️ để tự tích các cấp độ cho học viên.</div></div>${pendHere.length>1?`<button class="btn p sm" id="apAllHere">✅ Duyệt tất cả</button>`:""}</div>`:"")+`<table class="t"><tr><th>Học viên</th><th>Liên hệ</th><th>Khóa học</th><th>Quyền học</th><th>Lần cuối vào học</th><th>Số ngày</th><th>Tiến độ</th><th>Phân loại</th><th>Lớp / Ghi chú</th><th></th></tr>${list.sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(l=>{ const pf=l.profile||{}; const r=Object.assign({type:pf.studied?"center":"outside",cls:pf.cls||""},ROSTER[l.id]||{}); const pr=ps[l.id]||{}; const pct=Math.min(100,Math.round((l.steps||0)/total*100));
     return `<tr data-u="${esc(l.id)}"><td><div class="who">${pr.avatarUrl?`<img src="${pr.avatarUrl}" alt="">`:""}<span class="nm"></span></div>${pf.studied?'<span class="chipx" style="font-size:10px;padding:1px 6px">từng học tại 舒如天上星</span>':""}${pf.name?"":'<span class="chipx" style="font-size:10px;padding:1px 6px">chưa tạo hồ sơ</span>'}</td><td class="ct2" style="font-size:12px"></td><td style="font-size:13px">${(pf.courses||[]).map(k=>LANGS[k]?LANGS[k].flag:"").join(" ")}${pf.goal?`<div class="muted" style="font-size:11px">${esc(pf.goal)}</div>`:""}</td><td>${accCell(l)}</td><td>${l.lastSeen?new Date(l.lastSeen).toLocaleString("vi-VN"):"–"}</td><td>${(l.days||[]).length}</td>
     <td><div class="bar"><i style="width:${pct}%"></i></div><small class="muted">${l.steps||0} bước</small></td>
     <td><select data-type><option value="outside" ${r.type!=="center"?"selected":""}>🌐 Ngoài 舒如天上星</option><option value="center" ${r.type==="center"?"selected":""}>🏫 Tại 舒如天上星</option></select></td>
-    <td><input type="text" data-cls value="${esc(r.cls||"")}" placeholder="VD: Lớp HSK1-K12, cô Hà" style="border:1.5px solid var(--line);border-radius:10px;padding:5px 8px;width:100%"></td></tr>`; }).join("")}</table>`;
+    <td><input type="text" data-cls value="${esc(r.cls||"")}" placeholder="VD: Lớp HSK1-K12, cô Hà" style="border:1.5px solid var(--line);border-radius:10px;padding:5px 8px;width:100%"></td>
+    <td style="white-space:nowrap">${SB_ON?`<button class="btn sm" data-lpw="${esc(l.id)}" title="Đặt mật khẩu mới cho học viên">🔑 Đổi mật khẩu</button> `:""}<button class="btn sm red" data-ldel="${esc(l.id)}" title="Xóa học viên">🗑 Xóa</button></td></tr>`; }).join("")}</table>`;
   p.querySelectorAll("tr[data-u]").forEach(tr=>{ const id=tr.dataset.u; const L0=list.find(x=>x.id===id)||{}; const pf0=L0.profile||{}; tr.querySelector(".nm").textContent=pf0.name||(ps[id]&&ps[id].name)||"Học viên"; tr.querySelector(".ct2").textContent=[pf0.email,pf0.zalo].filter(Boolean).join(" · ")||"–";
     const save=async()=>{ try{ await DB.doc("roster/"+id).set({type:tr.querySelector("[data-type]").value, cls:tr.querySelector("[data-cls]").value.trim().slice(0,120)}); toast("Đã lưu"); }catch(e){ toast("Không lưu được"); } };
     tr.querySelector("[data-type]").onchange=save; tr.querySelector("[data-cls]").onchange=save; });
@@ -1460,6 +1463,8 @@ async function renderLearners(p, list, tab){
   const nm=id=>{ const l=list.find(x=>x.id===id); return l?lnName(l):"học viên"; };
   p.querySelectorAll("[data-apu]").forEach(b=>b.onclick=()=>{ const id=b.dataset.apu, lv=b.dataset.aplv; act(b,()=>setAccess(id,a=>{ a.levels[lv]=true; delete a.denied[lv]; }),`✅ Đã duyệt ${lvName(lv)} cho ${nm(id)}`); });
   p.querySelectorAll("[data-dnu]").forEach(b=>b.onclick=()=>{ const id=b.dataset.dnu, lv=b.dataset.dnlv; act(b,()=>setAccess(id,a=>{ delete a.levels[lv]; a.denied[lv]=Date.now(); }),"Đã từ chối yêu cầu"); });
+  p.querySelectorAll("[data-lpw]").forEach(b=>b.onclick=()=>{ const l=list.find(x=>x.id===b.dataset.lpw); if(l) openPwChange(l); });
+  p.querySelectorAll("[data-ldel]").forEach(b=>b.onclick=()=>{ const l=list.find(x=>x.id===b.dataset.ldel); if(l) deleteLearner(l); });
   p.querySelectorAll("[data-acce]").forEach(b=>b.onclick=()=>{ const l=list.find(x=>x.id===b.dataset.acce); if(l) openAccessEditor(l); });
   const aa=$("#apAllHere"); if(aa) aa.onclick=()=>act(aa,async()=>{ for(const x of pendHere) await setAccess(x.l.id,a=>{ a.levels[x.lv]=true; delete a.denied[x.lv]; }); },`✅ Đã duyệt ${pendHere.length} yêu cầu`);
 }
@@ -2060,16 +2065,45 @@ function parseSubs(txt, lang){ lang=lang||CUR_LANG;
 }
 
 /* 7. Điền từ (tự tạo từ hội thoại) */
+let FILL_MODE=store.get("srt_fillmode","pick");
 function rFill(el){
-  const ws=V().map(v=>v.w); const Q=[];
-  DLG().forEach(d=>{ if(Q.length>=5) return; const t=tok(d.zh); const cand=t.map((x,i)=>i).filter(i=>ws.includes(t[i])||ws.includes(t[i].toLowerCase())); if(!cand.length) return; const k=cand[Math.floor(Math.random()*cand.length)]; const ans=ws.includes(t[k])?t[k]:t[k].toLowerCase(); if(Q.some(q=>q.a===ans&&q.full===d.zh)) return;
-    const others=shuffle(ws.filter(w=>w!==ans)).slice(0,2); Q.push({t:t.map((x,i)=>i===k?"___":x),a:ans,vi:d.vi,o:shuffle([ans,...others]),full:d.zh}); });
+  const ws=V().map(v=>v.w).filter(Boolean); const Q=[]; const seen=new Set();
+  const src=[...DLG().map(d=>[d.zh,d.vi]),...(LS.grammar||[]).flatMap(g=>(g.ex||[]).map(e=>[e[0],e[1]])),...V().filter(v=>v.ex).map(v=>[v.ex,v.exVi])];
+  shuffle(src).forEach(([zh,vi])=>{ if(Q.length>=10||!zh||seen.has(zh)) return; const t=tok(zh); const cand=t.map((x,i)=>i).filter(i=>ws.includes(t[i])||ws.includes(t[i].toLowerCase())); if(!cand.length) return;
+    const k=cand[Math.floor(Math.random()*cand.length)]; const ans=ws.includes(t[k])?t[k]:t[k].toLowerCase(); seen.add(zh);
+    const others=shuffle(ws.filter(w=>w!==ans)).slice(0,3); Q.push({t:t.map((x,i)=>i===k?"___":x),a:ans,vi:vi||"",o:shuffle([ans,...others]),full:zh}); });
   if(!Q.length){ el.innerHTML=`<div class="empty">Chưa đủ dữ liệu để tạo bài điền từ.</div>`; return; }
-  let right=new Set();
-  el.innerHTML=guide("Chọn từ đúng để điền vào chỗ trống.")+Q.map((q,i)=>`<div class="ex-item"><div class="q zh">${i+1}. ${q.t.map(t=>t==="___"?`<span class="blank" id="bl${i}">？</span>`:esc(t)).join("")}</div><div class="vi">${esc(q.vi)}</div><div class="opts">${q.o.map(o=>`<button class="btn sm opt zh" style="font-size:18px" data-i="${i}" data-o="${esc(o)}">${esc(o)} <small class="muted">${esc(pyOf(o))}</small></button>`).join("")}</div></div>`).join("")+`<div id="fb"></div>`;
-  el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i, ok=b.dataset.o===Q[i].a; b.parentElement.querySelectorAll(".opt").forEach(x=>x.classList.remove("ok","no")); b.classList.add(ok?"ok":"no"); $("#bl"+i).textContent=b.dataset.o;
-    if(ok){ right.add(i); say(Q[i].full); } else right.delete(i);
-    if(right.size===Q.length){ $("#fb").innerHTML='<div class="fb ok">🎉 Bạn đã điền đúng tất cả!</div>'; markDone(6); } });
+  const right=new Set(), typing=FILL_MODE==="type";
+  const pyKey=w=>{ try{ return dictNorm(pyOf(w)||"",true).join(""); }catch(e){ return ""; } };
+  const vMeaning=w=>{ const v=V().find(x=>x.w===w||x.w.toLowerCase()===w); return v?v.vi:""; };
+  el.innerHTML=guide(typing?"<b>Tự gõ</b> từ còn thiếu vào chỗ trống rồi bấm Enter. Tiếng Trung gõ chữ Hán hoặc pinyin (không cần dấu thanh) đều được.":"Chọn từ đúng để điền vào chỗ trống.")+
+    `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><div class="seg"><button data-fm="pick" class="${typing?"":"on"}">👆 Chọn đáp án</button><button data-fm="type" class="${typing?"on":""}">⌨️ Tự đánh máy</button></div><span class="muted" style="font-size:13px" id="fCnt">Đúng 0/${Q.length}</span></div>`+
+    (typing?`<div class="note" style="margin-bottom:10px">💡 Từ cần dùng: ${shuffle(Q.map(q=>q.a)).filter((w,i,a)=>a.indexOf(w)===i).map(w=>`<span class="chipx zh">${esc(w)}</span>`).join(" ")} <button class="btn sm" id="fHide">Ẩn gợi ý</button></div>`:"")+
+    Q.map((q,i)=>`<div class="ex-item"><div class="q zh">${i+1}. ${q.t.map(t=>t==="___"?(typing?`<input class="fill-in zh" data-i="${i}" autocomplete="off" size="${Math.max(3,[...q.a].length*2)}">`:`<span class="blank" id="bl${i}">？</span>`):esc(t)).join("")}</div><div class="vi">${esc(q.vi)}</div>
+      ${typing?`<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="btn sm" data-fk="${i}">✔ Kiểm tra</button><button class="btn sm" data-fh="${i}">💡 Gợi ý</button><button class="btn sm" data-fs="${i}">👁 Đáp án</button><span class="muted" style="font-size:13px;align-self:center" id="fr${i}"></span></div>`
+      :`<div class="opts">${q.o.map(o=>`<button class="btn sm opt zh" style="font-size:18px" data-i="${i}" data-o="${esc(o)}">${esc(o)} <small class="muted">${esc(pyOf(o))}</small></button>`).join("")}</div>`}</div>`).join("")+`<div id="fb"></div>`;
+  el.querySelectorAll("[data-fm]").forEach(b=>b.onclick=()=>{ FILL_MODE=b.dataset.fm; store.set("srt_fillmode",FILL_MODE); rFill(el); });
+  const upd=()=>{ $("#fCnt").textContent=`Đúng ${right.size}/${Q.length}`; if(right.size===Q.length){ $("#fb").innerHTML='<div class="fb ok">🎉 Bạn đã điền đúng tất cả!</div>'; markDone(6); } };
+  if(!typing){
+    el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i, ok=b.dataset.o===Q[i].a; b.parentElement.querySelectorAll(".opt").forEach(x=>x.classList.remove("ok","no")); b.classList.add(ok?"ok":"no"); $("#bl"+i).textContent=b.dataset.o;
+      if(ok){ right.add(i); say(Q[i].full); } else right.delete(i); upd(); });
+    return;
+  }
+  const fh=$("#fHide"); if(fh) fh.onclick=()=>fh.parentElement.remove();
+  const inputs=[...el.querySelectorAll(".fill-in")];
+  const check=i=>{ const inp=inputs[i], q=Q[i], v=inp.value.trim(); const r=$("#fr"+i); if(!v){ r.textContent="Hãy gõ từ trước"; return; }
+    const a=q.a, vv=CJK(CUR_LANG)?v.replace(/\s+/g,""):v.toLowerCase();
+    let ok=vv===a||vv.toLowerCase()===a.toLowerCase(); let viaPy=false;
+    if(!ok&&CUR_LANG==="zh"){ const k=pyKey(a); if(k&&dictNorm(v,true).join("")===k){ ok=true; viaPy=true; } }
+    inp.classList.remove("ok","no"); inp.classList.add(ok?"ok":"no");
+    if(ok){ right.add(i); if(viaPy) inp.value=a; r.innerHTML=`✅ Đúng${viaPy?` (chữ Hán: <b class="zh">${esc(a)}</b>)`:""}${vMeaning(a)?" · "+esc(vMeaning(a)):""}`; say(q.full); const nx=inputs[i+1]; if(nx&&!right.has(i+1)) nx.focus(); }
+    else { right.delete(i); r.textContent="❌ Chưa đúng, thử lại nhé"; }
+    upd(); };
+  inputs.forEach((inp,i)=>inp.onkeydown=e=>{ if(e.key==="Enter"&&!e.isComposing){ e.preventDefault(); check(i); } });
+  el.querySelectorAll("[data-fk]").forEach(b=>b.onclick=()=>check(+b.dataset.fk));
+  el.querySelectorAll("[data-fh]").forEach(b=>b.onclick=()=>{ const q=Q[+b.dataset.fh]; $("#fr"+b.dataset.fh).innerHTML=`💡 ${CUR_LANG==="zh"&&pyOf(q.a)?"pinyin: <b>"+esc(pyOf(q.a))+"</b> · ":""}nghĩa: <b>${esc(vMeaning(q.a)||"?")}</b>`; });
+  el.querySelectorAll("[data-fs]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.fs; $("#fr"+i).innerHTML=`Đáp án: <b class="zh">${esc(Q[i].a)}</b> <span class="muted">${esc(pyOf(Q[i].a))}</span>`; });
+  setTimeout(()=>inputs[0]&&inputs[0].focus(),50);
 }
 /* 8. Sắp xếp */
 let ORD_MODE=store.get("srt_ordmode","tap");
@@ -2242,6 +2276,7 @@ function renderAccount(){
   items.push(`<button data-a="font">🖋 Kiểu chữ Hán</button>`);
   items.push(`<button data-a="reg">📝 ${myProfile()?"Hồ sơ học viên":"Đăng ký học"}</button>`);
   items.push(`<button data-a="progress">📈 Tiến độ của tôi</button>`);
+  if(SB_ON&&SESSION) items.push(`<button data-a="pw">🔑 Đổi mật khẩu</button>`);
   items.push(`<button data-a="logout" class="out">🚪 Đăng xuất</button>`);
   $("#accDd").innerHTML=items.join("");
   $("#accDd").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{ $("#accDd").classList.add("hidden"); accAction(b.dataset.a); });
@@ -2262,6 +2297,7 @@ function accAction(a){
   if(a==="admin"){ location.hash="admin"; return; }
   if(a==="progress"){ const ls=allLessonsAll().filter(l=>l.status==="pub"); const s=streakInfo();
     modal(`<h3>📈 Tiến độ của tôi<button class="x" data-close>×</button></h3><p>🔥 Chuỗi <b>${s.streak}</b> ngày · 📅 Tháng này <b>${s.month}</b> ngày học</p>${ls.map(l=>{ const n=doneSet(l.id).size; return `<div class="lrow"><div class="tt"><b class="zh">${esc(l.zh)}</b> <span class="muted">${esc(lvName(l.level))}</span></div><div class="bar"><i style="width:${Math.round(n/stepCount(l)*100)}%"></i></div><small>${n}/${stepCount(l)}</small></div>`; }).join("")}`); return; }
+  if(a==="pw"){ openPwChange(null); return; }
   if(a==="logout"){ confirmBox("Đăng xuất?","Bạn sẽ đăng xuất khỏi tài khoản trên thiết bị này.","Đăng xuất",async()=>{ ["srt_profile","srt_last","srt_profile_uid"].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); if(SB){ await SB.auth.signOut(); return; } regNotice=false; renderAccount(); renderLocks(); toast("Đã đăng xuất"); location.hash="dang-ky"; }); }
 }
 const DEFAULT_PROFILE={name:"舒如天上星",zalo:"",slogan:"Giới thiệu ngắn: kinh nghiệm, phong cách giảng dạy…",fbName:"",fbUrl:"",avatarId:null,
@@ -3015,6 +3051,42 @@ function lvShort(k){ const l=LEVELS.find(x=>x.id===k); return l?LANGS[l.lang].fl
 function accCell(l){ if(!canManage()) return ""; const ac=ACCESS_ALL[l.id]||{}, lv=ac.levels||{};
   const ok=Object.keys(lv).filter(k=>lv[k]&&LEVELS.some(x=>x.id===k)); const pd=pendingReqs().filter(x=>x.l.id===l.id);
   return `<div class="acc-cell">${ok.map(k=>`<span class="chipx ok">✅ ${esc(lvShort(k))}</span>`).join("")}${pd.map(x=>`<span class="chipx pend">⏳ ${esc(lvShort(x.lv))}<button class="mini ok" data-apu="${esc(l.id)}" data-aplv="${esc(x.lv)}" title="Duyệt">✓</button><button class="mini no" data-dnu="${esc(l.id)}" data-dnlv="${esc(x.lv)}" title="Từ chối">✕</button></span>`).join("")}${!ok.length&&!pd.length?'<span class="muted" style="font-size:12px">Chưa có</span>':""}<button class="mini" data-acce="${esc(l.id)}" title="Chỉnh quyền học">⚙️</button></div>`; }
+
+/* ---------- Xóa học viên / đổi mật khẩu ---------- */
+function deleteLearner(l){
+  if(l.id===UID){ toast("Không thể tự xóa tài khoản của chính mình"); return; }
+  const nm=esc(lnName(l));
+  confirmBox("Xóa học viên?",`Học viên <b>${nm}</b> sẽ bị xóa khỏi danh sách cùng hồ sơ, tiến độ và quyền học.${SB_ON?" <b>Tài khoản đăng nhập cũng bị xóa</b>, học viên phải đăng ký lại nếu muốn học tiếp.":""} Không thể hoàn tác.`,"Xóa vĩnh viễn",async()=>{
+    try{
+      if(SB_ON){ const {error}=await SB.rpc("admin_delete_user",{p_uid:l.id}); if(error) throw error; }
+      else { for(const pth of ["learners/","access/","roster/"]){ try{ await DB.doc(pth+l.id).delete(); }catch(e){} } }
+      LEARNERS=LEARNERS.filter(x=>x.id!==l.id); delete ACCESS_ALL[l.id]; toast("Đã xóa học viên"); renderAdmin();
+    }catch(e){ toast(/function|does not exist|schema cache/i.test(e&&e.message||"")?"Cần chạy lại file supabase-setup.sql để bật chức năng xóa.":dbErrMsg(e)); }
+  });
+}
+function openPwChange(l){
+  if(!SB_ON||!SB){ toast("Chức năng này dùng trên bản web riêng (GitHub) có đăng nhập Supabase."); return; }
+  const self=!l;
+  const m=modal(`<h3>🔑 ${self?"Đổi mật khẩu của tôi":"Đặt mật khẩu mới cho học viên"}<button class="x" data-close>×</button></h3><div id="pwMsg"></div>
+    ${self?"":`<p style="margin-top:0">Học viên: <b id="pwWho"></b><br><span class="muted" style="font-size:13px">Báo mật khẩu mới cho học viên trực tiếp. Học viên nên tự đổi lại sau khi đăng nhập.</span></p>`}
+    <div class="fld"><label>Mật khẩu mới</label><input type="password" id="pw1" maxlength="72" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></div>
+    <div class="fld"><label>Nhập lại mật khẩu mới</label><input type="password" id="pw2" maxlength="72" autocomplete="new-password"></div>
+    <label style="font-size:13px;display:flex;gap:6px;align-items:center;margin-bottom:12px"><input type="checkbox" id="pwShow"> Hiện mật khẩu</label>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" data-close>Hủy</button><button class="btn p" id="pwGo">💾 Lưu mật khẩu</button></div>`);
+  if(!self) m.querySelector("#pwWho").textContent=lnName(l)+((l.profile&&l.profile.email)?" · "+l.profile.email:"");
+  m.querySelector("#pwShow").onchange=e=>{ ["#pw1","#pw2"].forEach(q=>m.querySelector(q).type=e.target.checked?"text":"password"); };
+  const err=t=>m.querySelector("#pwMsg").innerHTML=t?`<div class="err">${esc(t)}</div>`:"";
+  m.querySelector("#pwGo").onclick=async()=>{ const a=m.querySelector("#pw1").value, b=m.querySelector("#pw2").value;
+    if(a.length<6){ err("Mật khẩu cần ít nhất 6 ký tự."); return; } if(a!==b){ err("Hai mật khẩu chưa khớp."); return; }
+    const go=m.querySelector("#pwGo"); go.disabled=true; go.textContent="Đang lưu…";
+    try{ if(self){ const {error}=await SB.auth.updateUser({password:a}); if(error) throw error; }
+      else { const {error}=await SB.rpc("admin_set_password",{p_uid:l.id,p_pw:a}); if(error) throw error; }
+      closeModal(); toast(self?"✅ Đã đổi mật khẩu":"✅ Đã đặt mật khẩu mới cho học viên");
+    }catch(e){ go.disabled=false; go.textContent="💾 Lưu mật khẩu"; const msg=String(e&&e.message||"");
+      err(/function|does not exist|schema cache/i.test(msg)?"Cần chạy lại file supabase-setup.sql để bật chức năng này.":/same|different from the old/i.test(msg)?"Mật khẩu mới phải khác mật khẩu cũ.":/reauth|recent/i.test(msg)?"Phiên đăng nhập đã lâu, hãy đăng xuất rồi đăng nhập lại trước khi đổi mật khẩu.":SB_ERR(msg)); }
+  };
+  setTimeout(()=>m.querySelector("#pw1").focus(),50);
+}
 function openAccessEditor(l){
   const cur=Object.assign({},(ACCESS_ALL[l.id]||{}).levels||{}); const rq=l.reqs||{};
   const m=modal(`<h3>⚙️ Quyền học<button class="x" data-close>×</button></h3><p style="margin-top:0"><b id="aeN"></b><br><span class="muted" style="font-size:13px">Tích cấp độ học viên được học. Dấu 📩 là cấp độ học viên đã xin.</span></p>
@@ -3551,8 +3623,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
