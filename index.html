@@ -1109,6 +1109,7 @@ let PROFILE_CHECKED=false, regNotice=false;
 function needReg(){ if(SB_ON&&!SESSION) return true; return !IS_ADMIN && !myProfile(); }
 function curView(){ const h=location.hash.slice(1); if(h==="video") return "videos"; if(h.startsWith("video-")) return "video"; if(h.startsWith("course")||h==="docs") return "course"; if(h==="admin") return "admin"; if(h==="gioi-thieu") return "gv"; if(h==="truyen") return "stories"; if(h.startsWith("truyen-")) return "story"; if(h==="so-tu") return "book"; if(h==="tap-viet") return "write"; if(h==="dang-ky") return "reg"; if(h.startsWith("lesson-")) return "lesson"; return "home"; }
 function route(){
+  if($("#modalRoot").innerHTML) closeModal();
   const h=location.hash.slice(1); let v=curView();
   if(APP_MODE==="admin"&&v!=="admin"){ location.replace("#admin"); return; }
   if(APP_MODE==="student"&&v==="admin"){ location.replace("#"); return; }
@@ -1165,7 +1166,7 @@ function reqState(lv){ if(lvApproved(lv)) return "ok"; const r=myReqs()[lv], d=(
 function requestLevel(lv){ if(!UID||UID==="local"&&!DB){ toast("Hãy đăng nhập trước"); return; } const r=myReqs(); r[lv]=Date.now(); store.set("srt_reqs",r); syncLearner(true); toast(`📩 Đã gửi yêu cầu học ${lvName(lv)}. Chờ 舒如天上星 duyệt nhé!`); if(curView()==="course") renderCourse(); }
 function pendingReqs(){ const out=[]; LEARNERS.forEach(l=>{ const rq=l.reqs||{}, ac=ACCESS_ALL[l.id]||{}; Object.keys(rq).forEach(lv=>{ if(!LEVELS.some(x=>x.id===lv)) return; if((ac.levels||{})[lv]) return; const d=(ac.denied||{})[lv]; if(d&&d>=rq[lv]) return; out.push({l,lv,at:rq[lv]}); }); }); return out.sort((a,b)=>a.at-b.at); }
 function lessonsOf(lv, forAdmin){
-  const arr=[]; if(lv==="hsk1") arr.push(BUILTIN);
+  const arr=[]; if(lv==="hsk1"&&!LESSONS_DB.some(l=>l.level==="hsk1"&&(forAdmin||l.status==="pub"))) arr.push(BUILTIN);
   LESSONS_DB.filter(l=>l.level===lv && (forAdmin||l.status==="pub")).forEach(l=>arr.push(l));
   return arr.sort((a,b)=>(a.order||99)-(b.order||99));
 }
@@ -1473,7 +1474,7 @@ function renderAdmDocs(p){
 /* ---------- Biên soạn bài học ---------- */
 function renderCompose(p){
   const ls=lessonsOf(admLevel,true);
-  p.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn p" id="newL">＋ Soạn bài mới cho ${esc(lvName(admLevel))}</button><label class="btn" title="Mỗi bài trong file (第一课, Bài 1, Lesson 1…) thành một bài nháp">📚 Tải giáo trình (nhiều bài)<input type="file" id="tbFiles" multiple hidden accept=".txt,.md,.docx,.pdf,.jpg,.jpeg,.png,.webp"></label></div>
+  p.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn p" id="newL">＋ Soạn bài mới cho ${esc(lvName(admLevel))}</button><label class="btn" title="Mỗi bài trong file (第一课, Bài 1, Lesson 1…) thành một bài nháp">📚 Tải giáo trình (nhiều bài)<input type="file" id="tbFiles" multiple hidden accept=".txt,.md,.docx,.pdf,.jpg,.jpeg,.png,.webp,.json"></label></div>
      <label class="tg"><input type="checkbox" id="lvOpen" ${isOpen(admLevel)?"checked":""}> Mở cấp độ ${esc(lvName(admLevel))} cho học viên (bỏ chọn = “Sắp ra mắt”)</label></div>
     <div class="lvchips">${LEVELS.map((l,i)=>{ const n=lessonsOf(l.id,true).length; return `${i===0||LEVELS[i-1].g.split(" · ")[0]!==l.g.split(" · ")[0]?`<div class="lgroup">${esc(l.g.split(" · ")[0])}</div>`:""}<button class="lvchip ${l.id===admLevel?"on":""}" data-lv="${l.id}">${esc(l.name)} <em class="${isOpen(l.id)?"":"soon"}">${isOpen(l.id)?(n?"✓ "+n+" bài":"✓ Đã mở"):"⏳ Sắp ra mắt"}</em></button>`; }).join("")}</div>
     <div id="lsList">${ls.length?ls.map((l,i)=>`<div class="lrow"><div class="n">${i+1}</div><div class="tt"><b class="zh">${esc(l.zh||"")}</b> <span class="tag ${l.status==="pub"?"pub":"draft"}">${l.status==="pub"?"Đã đăng":"Nháp"}</span>${l.builtin?' <span class="chipx">Bài mẫu</span>':""}<div class="muted" style="font-size:13px">${esc(l.vi||"")} · ${(l.vocab||[]).length} từ · ${(l.dialogue||[]).length} câu hội thoại</div></div>
@@ -1586,8 +1587,13 @@ function lessonFromParsed(r, level, order){
 }
 async function importTextbook(files, level){
   if(!DB){ toast("Chưa kết nối được kho dữ liệu"); return; }
-  const lang=langOf(level); let made=0; const bad=[]; let order=lessonsOf(level,true).length+1; let lastT=0;
+  const lang=langOf(level); let made=0; const bad=[]; const jsonLv=new Set(); let order=lessonsOf(level,true).length+1; let lastT=0;
   for(const f of files){
+    if(extOf(f.name)==="json"){ try{ let arr=JSON.parse(await f.text()); if(!Array.isArray(arr)) arr=arr.lessons||[arr]; let n=0;
+        for(const x of arr){ if(!x||!x.zh||!Array.isArray(x.vocab)||!Array.isArray(x.dialogue)) continue; const d=Object.assign({},x); const id=String(d.id||"").replace(/[^\w-]/g,"").slice(0,60); delete d.id; d.level=LEVELS.some(l=>l.id===d.level)?d.level:level; d.updatedAt=Date.now(); jsonLv.add(d.level);
+          if(id) await DB.doc("lessons/"+id).set(d); else await DB.collection("lessons").add(d); n++; made++; }
+        if(!n) throw {msg:"File JSON không có bài học hợp lệ."};
+        for(const lv of new Set(arr.map(x=>x&&x.level).filter(v=>LEVELS.some(l=>l.id===v)))){ if(!isOpen(lv)){ try{ await DB.doc("levels/"+lv).set({open:true}); }catch(e){} } } }catch(x){ bad.push([f.name,(x&&x.msg)||dbErrMsg(x)]); } continue; }
     try{ const raw=await fileToText(f,lang,t=>{ if(Date.now()-lastT>1500){ lastT=Date.now(); toast(`⏳ ${f.name}: ${t}`); } },{raw:true});
       const parts=splitLessonsText(raw); if(!parts.length) throw {msg:"File trống."};
       for(const part of parts){ const r=parseLessonText((part.head?part.head+"\n":"")+part.lines.join("\n"),lang,f.name);
@@ -1596,8 +1602,8 @@ async function importTextbook(files, level){
       if(!made) throw {msg:"Không tìm thấy từ mới hay hội thoại nào. Kiểm tra lại cấp độ đã chọn có đúng ngôn ngữ của file không."};
     }catch(x){ bad.push([f.name,(x&&x.msg)||"Không đọc được file."]); }
   }
-  const mm=modal(`<h3>${made?`✅ Đã tạo ${made} bài nháp`:"⚠️ Chưa tạo được bài"}<button class="x" data-close>×</button></h3>
-    <p style="margin-top:0">${made?`Các bài nháp nằm trong <b>${esc(lvName(level))}</b>. Hãy bấm <b>✏️ Sửa</b> từng bài để kiểm tra từ mới, hội thoại, ngữ pháp rồi chọn <b>✅ Đăng cho học viên</b>.${fileToText.ocr?" File là ảnh/bản scan nên máy có thể đọc nhầm vài chữ.":""}`:""}</p><div id="itBad"></div>
+  const mm=modal(`<h3>${made?`✅ Đã tạo ${made} bài`:"⚠️ Chưa tạo được bài"}<button class="x" data-close>×</button></h3>
+    <p style="margin-top:0">${made?`${jsonLv.size?`Các bài đã vào <b>${[...jsonLv].map(x=>esc(lvName(x))).join(", ")}</b> và cấp độ đã được mở (học viên vẫn cần được duyệt).`:`Các bài nằm trong <b>${esc(lvName(level))}</b>.`} Hãy bấm <b>✏️ Sửa</b> từng bài để kiểm tra từ mới, hội thoại, ngữ pháp rồi chọn <b>✅ Đăng cho học viên</b>.${fileToText.ocr?" File là ảnh/bản scan nên máy có thể đọc nhầm vài chữ.":""}`:""}</p><div id="itBad"></div>
     <div style="text-align:right;margin-top:12px"><button class="btn p" data-close>Đã hiểu</button></div>`);
   mm.querySelector("#itBad").innerHTML=bad.map(()=>`<div class="lrow" style="margin-bottom:6px"><div class="tt"><b></b><div class="muted" style="font-size:13px"></div></div></div>`).join("");
   mm.querySelectorAll("#itBad .lrow").forEach((r,i)=>{ r.querySelector("b").textContent=bad[i][0]; r.querySelector(".muted").textContent=bad[i][1]; });
@@ -3514,8 +3520,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
