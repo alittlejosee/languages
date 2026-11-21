@@ -972,6 +972,7 @@ async function initCaps(){
   }
   if(UID&&UID!=="local"&&!myProfile()){ try{ const d=await DB.doc("learners/"+UID).get(); if(d.exists&&d.data().profile) store.set("srt_profile",d.data().profile); }catch(e){} }
   PROFILE_CHECKED=true; renderAccount(); renderLocks();
+  if(curView()==="reg"){ if(SB_ON&&SESSION&&!needReg()) location.replace("#"); else renderReg(); }
   syncLearner();
 }
 function renderAll(){ renderAccount(); renderBookBtn(); const v=curView(); if(v==="home") renderHome(); if(v==="gv") renderGV(); if(v==="stories") renderStories(); if(v==="admin"&&admTab==="stories") renderAdmin(); if(v==="course") renderCourse(); if(v==="admin") renderAdmin(); if(v==="lesson" && cur===5) refreshSrcOptions(); }
@@ -1883,7 +1884,7 @@ function renderAccount(){
   const guest=isGuest(); document.body.classList.toggle("guest",guest);
   $("#accBadge").classList.toggle("hidden",!IS_ADMIN); $("#accBadge").textContent=ROLE_NAME[myRole()];
   $("#accAv").innerHTML=ME&&ME.avatarUrl?`<img src="${ME.avatarUrl}" alt="">`:"🙂";
-  $("#adminBtn").classList.toggle("hidden",!ADM());
+  $("#adminBtn").classList.toggle("hidden",!IS_ADMIN); $("#adminBtn").textContent=canManage()?"🛠 Khu quản trị":"🧑‍🏫 Khu giáo viên";
   $("#upBtn").classList.toggle("hidden",!(ADM()&&ASSETS&&DB));
   $("#svBar").classList.add("hidden");
   const items=[];
@@ -2678,8 +2679,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
@@ -2719,6 +2720,7 @@ function makeSbAssets(sb){
 }
 const SB_ERR=m=>{ m=String(m||""); if(/invalid login/i.test(m)) return "Sai email hoặc mật khẩu."; if(/already registered|already exists/i.test(m)) return "Email này đã có tài khoản. Hãy chuyển sang tab Đăng nhập."; if(/expired|invalid/i.test(m)&&/token|otp/i.test(m)) return "Mã OTP sai hoặc đã hết hạn. Hãy gửi lại mã."; if(/security purposes|rate limit|too many/i.test(m)) return "Bạn thao tác quá nhanh. Hãy đợi khoảng 60 giây rồi thử lại."; if(/not confirmed/i.test(m)) return "Email chưa được xác thực. Hãy nhập mã OTP đã gửi về Gmail."; if(/password/i.test(m)&&/6|short|weak/i.test(m)) return "Mật khẩu cần ít nhất 6 ký tự."; return "Có lỗi: "+m; };
 let sbTab="login", sbPending=false, sbTimer=null;
+function sbGoIn(){ if(window._sbGoing) return; window._sbGoing=true; try{ sessionStorage.removeItem("srt_pw_reset"); }catch(e){} const u=location.pathname+location.search; if(location.hash){ location.href=u; setTimeout(()=>location.reload(),600); } else location.reload(); }
 function renderRegSB(){
   const box=$("#regBody");
   const logo=`<div style="text-align:center"><div class="logo" style="margin:0 auto 6px;width:64px;height:64px"><svg width="40" height="40" viewBox="0 0 40 40"><path d="M20 3l4.6 10.4L36 14.6l-8.6 7.6L30 34 20 28.2 10 34l2.6-11.8L4 14.6l11.4-1.2z" style="fill:var(--sky);stroke:var(--p-dark)" stroke-width="1.2" stroke-linejoin="round"/></svg></div><h2 class="zh" style="margin:0;color:var(--p-dark)">舒如天上星</h2></div>`;
@@ -2755,7 +2757,7 @@ function renderRegSB(){
     $("#aForgot").onclick=()=>{ sbTab="forgot"; renderRegSB(); };
     const go=async()=>{ const email=$("#aMail").value.trim(), password=$("#aPw").value; if(!email||!password){ msg("Hãy nhập Gmail và mật khẩu."); return; }
       const b=$("#aLogin"); b.disabled=true; b.textContent="Đang đăng nhập…";
-      const {error}=await SB.auth.signInWithPassword({email,password}); if(error){ b.disabled=false; b.textContent="ĐĂNG NHẬP"; msg(esc(SB_ERR(error.message))); } else msg("✅ Đăng nhập thành công…",true); };
+      const {error}=await SB.auth.signInWithPassword({email,password}); if(error){ b.disabled=false; b.textContent="ĐĂNG NHẬP"; msg(esc(SB_ERR(error.message))); } else { msg("✅ Đăng nhập thành công… Đang vào học",true); setTimeout(sbGoIn,300); } };
     $("#aLogin").onclick=go; $("#aPw").onkeydown=e=>{ if(e.key==="Enter") go(); };
   } else if(sbTab==="create"){
     const sel=new Set(); box.querySelectorAll(".reg-lang").forEach(b=>b.onclick=()=>{ const k=b.dataset.lg; sel.has(k)?sel.delete(k):sel.add(k); b.classList.toggle("on"); });
@@ -2772,7 +2774,7 @@ function renderRegSB(){
     $("#cCreate").onclick=async()=>{ const d=read(), token=$("#cOtp").value.trim(); if(!/^\d{6,8}$/.test(token)){ msg("Hãy nhập đúng mã OTP gồm 6 chữ số."); return; }
       const b=$("#cCreate"); b.disabled=true; b.textContent="Đang xác thực…";
       const {error}=await SB.auth.verifyOtp({email:d.email,token,type:"signup"}); if(error){ b.disabled=false; b.textContent="TẠO TÀI KHOẢN"; msg(esc(SB_ERR(error.message))); return; }
-      msg("🎉 Tạo tài khoản thành công! Đang vào học…",true); };
+      msg("🎉 Tạo tài khoản thành công! Đang vào học…",true); setTimeout(sbGoIn,300); };
   } else {
     $("#fBack").onclick=()=>{ sbTab="login"; renderRegSB(); };
     $("#fSend").onclick=async()=>{ const email=$("#fMail").value.trim(); if(!email){ msg("Hãy nhập Gmail."); return; } const {error}=await SB.auth.resetPasswordForEmail(email,{redirectTo:redirect}); if(error){ msg(esc(SB_ERR(error.message))); return; } msg("📧 Đã gửi mã OTP. Kiểm tra Gmail (cả mục Spam).",true); };
@@ -2784,10 +2786,11 @@ function renderRegSB(){
 }
 async function initSupabase(){
   try{ await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"); }catch(e){ toast("Không tải được thư viện đăng nhập. Kiểm tra mạng."); return false; }
+  try{ sessionStorage.removeItem("srt_pw_reset"); }catch(e){}
   SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,detectSessionInUrl:true}});
   DB=makeSbDb(SB);
   const {data}=await SB.auth.getSession(); SESSION=data.session;
-  SB.auth.onAuthStateChange((ev,s)=>{ const a=SESSION&&SESSION.user&&SESSION.user.id, b2=s&&s.user&&s.user.id; SESSION=s; if(a!==b2&&!sessionStorage.getItem("srt_pw_reset")){ if(!b2){ ["srt_profile","srt_profile_uid","srt_last"].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); } location.hash=b2?"":"dang-ky"; location.reload(); } });
+  SB.auth.onAuthStateChange((ev,s)=>{ const a=SESSION&&SESSION.user&&SESSION.user.id, b2=s&&s.user&&s.user.id; SESSION=s; if(a!==b2&&!sessionStorage.getItem("srt_pw_reset")){ if(!b2){ ["srt_profile","srt_profile_uid","srt_last"].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); } if(b2) sbGoIn(); else { location.hash="dang-ky"; location.reload(); } } });
   if(SESSION){
     const u=SESSION.user, meta=u.user_metadata||{}; UID=u.id;
     ME={name:meta.full_name||meta.name||(u.email||"").split("@")[0],avatarUrl:meta.avatar_url||meta.picture||"",email:u.email};
