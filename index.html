@@ -2072,22 +2072,53 @@ function rFill(el){
     if(right.size===Q.length){ $("#fb").innerHTML='<div class="fb ok">🎉 Bạn đã điền đúng tất cả!</div>'; markDone(6); } });
 }
 /* 8. Sắp xếp */
+let ORD_MODE=store.get("srt_ordmode","tap");
+function orderPool(){
+  const seen=new Set(), out=[];
+  const add=(zh,vi)=>{ zh=String(zh||"").trim(); if(!zh||seen.has(zh)) return; const t=realToks(tok(zh)); const n=t.filter(x=>isWordy(x)).length; if(n<3||n>14) return; seen.add(zh); out.push({t,vi:vi||"",zh}); };
+  DLG().forEach(d=>add(d.zh,d.vi));
+  (LS.grammar||[]).forEach(g=>(g.ex||[]).forEach(e=>add(e[0],e[1])));
+  V().forEach(v=>add(v.ex,v.exVi));
+  return out;
+}
+function ordNorm(t){ t=String(t||"").normalize("NFC"); return CJK(CUR_LANG)?[...t].filter(c=>/[㐀-鿿぀-ヿ가-힯0-9A-Za-z]/.test(c)).join(""):t.toLowerCase().replace(/[^\p{L}\p{N}\s']/gu," ").replace(/\s+/g," ").trim(); }
 function rOrder(el){
-  const Q=shuffle(DLG().map(d=>({t:realToks(tok(d.zh)),vi:d.vi})).filter(q=>{ const n=q.t.filter(x=>isWordy(x)).length; return n>=3&&n<=8; })).slice(0,3);
-  if(!Q.length){ el.innerHTML=`<div class="empty">Chưa đủ dữ liệu để tạo bài sắp xếp.</div>`; markDone(7); return; }
-  let qi=0;
+  const ALL=orderPool();
+  if(!ALL.length){ el.innerHTML=`<div class="empty">Chưa đủ dữ liệu để tạo bài sắp xếp.</div>`; markDone(7); return; }
+  const Q=shuffle(ALL).slice(0,Math.min(12,ALL.length)); let qi=0; const res={};
   function draw(){
-    const q=Q[qi]; const pool=shuffle(q.t.map((t,i)=>({t,i}))); let ans=[];
-    el.innerHTML=guide("Bấm các từ theo đúng thứ tự để tạo thành câu. Bấm vào từ đã chọn để bỏ ra.")+`<div class="muted">Câu ${qi+1}/${Q.length} · Nghĩa: <b style="color:var(--ink)">${esc(q.vi)}</b></div><div class="ans-line zh" id="al"></div><div class="chips zh" id="pool" style="justify-content:flex-start"></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn p" id="ck">✔ Kiểm tra</button><button class="btn" id="rs">↺ Làm lại</button></div><div id="fb"></div>`;
+    const q=Q[qi]; const pool=shuffle(q.t.map((t,i)=>({t,i}))); let ans=[]; const typing=ORD_MODE==="type";
+    const nOk=Object.values(res).filter(x=>x==="ok").length;
+    el.innerHTML=guide(typing?"Nhìn các từ bị xáo trộn, <b>tự gõ lại câu</b> theo đúng thứ tự (không cần gõ dấu câu). Bấm Enter để kiểm tra.":"Bấm các từ theo đúng thứ tự để tạo thành câu. Bấm vào từ đã chọn để bỏ ra.")+
+      `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><div class="seg"><button data-om="tap" class="${typing?"":"on"}">👆 Bấm chọn từ</button><button data-om="type" class="${typing?"on":""}">⌨️ Tự đánh máy</button></div><span class="muted" style="font-size:13px">Đúng ${nOk}/${Q.length}</span></div>
+      <div class="dict-dots" style="margin:10px 0">${Q.map((_,k)=>`<button data-qk="${k}" class="${k===qi?"on":""} ${res[k]==="ok"?"g":res[k]==="no"?"r":res[k]==="skip"?"y":""}">${k+1}</button>`).join("")}</div>
+      <div class="muted">Câu ${qi+1}/${Q.length}${q.vi?` · Nghĩa: <b style="color:var(--ink)">${esc(q.vi)}</b>`:""}</div>
+      ${typing?`<div class="chips zh" style="justify-content:flex-start;margin:10px 0">${pool.filter(p=>isWordy(p.t)).map(p=>`<span class="tok" style="cursor:default">${esc(p.t)}</span>`).join("")}</div><input type="text" id="oIn" class="zh" autocomplete="off" placeholder="Gõ câu hoàn chỉnh vào đây…" style="width:100%;box-sizing:border-box;font-size:20px;padding:10px 12px;border:2px solid var(--line);border-radius:14px">`
+        :`<div class="ans-line zh" id="al"></div><div class="chips zh" id="pool" style="justify-content:flex-start"></div>`}
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn p" id="ck">✔ Kiểm tra</button>${typing?"":`<button class="btn" id="rs">↺ Làm lại</button>`}<button class="btn" id="sh">👁 Xem đáp án</button><button class="btn" id="sk">${qi<Q.length-1?"Bỏ qua ⏭":"Kết thúc"}</button></div><div id="fb"></div>`;
+    el.querySelectorAll("[data-om]").forEach(b=>b.onclick=()=>{ ORD_MODE=b.dataset.om; store.set("srt_ordmode",ORD_MODE); draw(); });
+    el.querySelectorAll("[data-qk]").forEach(b=>b.onclick=()=>{ qi=+b.dataset.qk; draw(); });
+    const sent=q.t.join(CJK(CUR_LANG)?"":" ").replace(/\s+([，。！？,.!?])/g,"$1");
+    const next=()=>{ if(qi<Q.length-1){ qi++; draw(); } else finish(); };
+    const finish=()=>{ const ok=Object.values(res).filter(x=>x==="ok").length; if(ok>=Math.ceil(Q.length/2)) markDone(7);
+      $("#fb").innerHTML=`<div class="fb ${ok>=Math.ceil(Q.length/2)?"ok":"no"}">🏁 Xong ${Q.length} câu: đúng ${ok} câu.${ok<Q.length?' <button class="btn sm" id="again" style="margin-left:8px">↺ Làm lại câu sai</button>':""}</div>`;
+      const ag=$("#again"); if(ag) ag.onclick=()=>{ const k=Q.findIndex((_,i)=>res[i]!=="ok"); if(k>=0){ qi=k; draw(); } }; };
+    const good=()=>{ res[qi]="ok"; say(sent); $("#fb").innerHTML=`<div class="fb ok">🎉 Chính xác! <span class="zh">${esc(sent)}</span> ${qi<Q.length-1?'<button class="btn sm p" id="nx" style="margin-left:8px">Câu tiếp →</button>':""}</div>`; const nx=$("#nx"); if(nx) nx.onclick=next; else finish();
+      el.querySelectorAll("[data-qk]")[qi].className="on g"; };
+    const bad=()=>{ if(res[qi]!=="ok") res[qi]="no"; $("#fb").innerHTML='<div class="fb no">Chưa đúng thứ tự. Thử lại nhé!</div>'; el.querySelectorAll("[data-qk]")[qi].className="on r"; };
+    $("#sh").onclick=()=>{ if(res[qi]!=="ok") res[qi]="skip"; $("#fb").innerHTML=`<div class="fb no">Đáp án: <b class="zh">${esc(sent)}</b> <button class="btn sm" id="pl">🔊</button> ${qi<Q.length-1?'<button class="btn sm p" id="nx" style="margin-left:6px">Câu tiếp →</button>':""}</div>`; $("#pl").onclick=()=>say(sent); const nx=$("#nx"); if(nx) nx.onclick=next; };
+    $("#sk").onclick=()=>{ if(!res[qi]) res[qi]="skip"; next(); };
+    if(typing){ const inp=$("#oIn"); setTimeout(()=>inp.focus(),30);
+      $("#ck").onclick=()=>{ const v=inp.value.trim(); if(!v){ toast("Hãy gõ câu trước"); return; } const ok=ordNorm(v)===ordNorm(q.t.join(CJK(CUR_LANG)?"":" ")); inp.style.borderColor=ok?"#2f9e6e":"#e5536b"; ok?good():bad(); };
+      inp.onkeydown=e=>{ if(e.key==="Enter"&&!e.isComposing){ e.preventDefault(); $("#ck").click(); } };
+      return; }
     function paint(){ $("#al").innerHTML=ans.length?ans.map((p,k)=>`<button class="tok" data-k="${k}">${esc(p.t)}</button>`).join(""):'<span class="muted" style="font-size:14px">Câu của bạn sẽ hiện ở đây…</span>';
       $("#pool").innerHTML=pool.map((p,k)=>`<button class="tok ${ans.includes(p)?"used":""}" data-p="${k}">${esc(p.t)}</button>`).join("");
       $("#al").querySelectorAll(".tok").forEach(b=>b.onclick=()=>{ ans.splice(+b.dataset.k,1); paint(); });
       $("#pool").querySelectorAll(".tok").forEach(b=>b.onclick=()=>{ const p=pool[+b.dataset.p]; if(!ans.includes(p)){ ans.push(p); if(isWordy(p.t)) say(p.t); } paint(); }); }
     paint();
     $("#rs").onclick=()=>{ ans=[]; $("#al").className="ans-line zh"; $("#fb").innerHTML=""; paint(); };
-    $("#ck").onclick=()=>{ const ok=ans.length===q.t.length&&ans.every((p,i)=>p.t===q.t[i]); $("#al").className="ans-line zh "+(ok?"ok":"no");
-      if(ok){ say(q.t.join(CJK(CUR_LANG)?"":" ")); $("#fb").innerHTML=`<div class="fb ok">🎉 Chính xác! ${qi<Q.length-1?'<button class="btn sm p" id="nx" style="margin-left:8px">Câu tiếp →</button>':""}</div>`; if(qi<Q.length-1) $("#nx").onclick=()=>{ qi++; draw(); }; else markDone(7); }
-      else $("#fb").innerHTML='<div class="fb no">Chưa đúng thứ tự. Thử lại nhé!</div>'; };
+    $("#ck").onclick=()=>{ const ok=ans.length===q.t.length&&ans.every((p,i)=>p.t===q.t[i]); $("#al").className="ans-line zh "+(ok?"ok":"no"); ok?good():bad(); };
   }
   draw();
 }
@@ -3520,8 +3551,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
