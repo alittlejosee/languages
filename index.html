@@ -873,6 +873,7 @@ body.side-mini .sn{justify-content:center;padding:10px 0}body.side-mini .sng-h{j
   body.mnav-open .mnav-bg{display:block;position:fixed;inset:0;background:rgba(20,30,50,.25);z-index:36}
   body.side-mini .sn span{display:inline!important}body.side-mini .sng-h span{display:inline!important}
   .bnav{overflow-x:visible}.bnav button{flex:1;min-width:0}}
+.gpr{margin-top:10px;border:1px dashed var(--line);border-radius:12px;background:#fffdf6}.gpr-h{width:100%;text-align:left;border:none;background:none;padding:8px 12px;font-weight:700;color:var(--p-dark)}.gpr-h em{font-style:normal}.gpr-b{padding:0 12px 12px}.gpr-q,.gpr-a{white-space:pre-line;line-height:1.8;font-size:16px}.gpr-a{margin-top:8px;padding:10px 12px;background:#eef8ee;border-radius:10px;font-size:15px}.gpr-b .btn{margin-top:8px}
 </style>
 </head>
 <body>
@@ -1339,7 +1340,7 @@ function modal(html, wide){
   root.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeModal);
   return root.querySelector(".modal");
 }
-function closeModal(){ const v=$("#modalRoot video"); if(v) v.pause(); $("#modalRoot").innerHTML=""; }
+function closeModal(){ const v=$("#modalRoot video"); if(v) v.pause(); const had=!!$("#modalRoot").innerHTML; $("#modalRoot").innerHTML=""; if(had){ try{ speechSynthesis.cancel(); }catch(e){} try{ if(typeof recorder!=="undefined"&&recorder&&recorder.state==="recording") recorder.stop(); }catch(e){} } }
 function confirmBox(title, msg, okText, onOk){
   const m=modal(`<h3>${esc(title)}<button class="x" data-close>×</button></h3><p>${msg}</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" data-close>Hủy</button><button class="btn p" id="cfOk">${esc(okText)}</button></div>`);
   m.querySelector("#cfOk").onclick=async()=>{ m.querySelector("#cfOk").disabled=true; await onOk(); closeModal(); };
@@ -1844,7 +1845,7 @@ function openComposer(L){
     <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn" data-close>Hủy</button><button class="btn" id="cPrev">👁 Xem trước</button><button class="btn p" id="cSave">💾 Lưu bài</button></div>`, true);
   const read=()=>({level:m.querySelector("#cLv").value, order:Math.max(1,Math.min(99,parseInt(m.querySelector("#cOrd").value)||1)), zh:m.querySelector("#cZh").value.trim().slice(0,80), vi:m.querySelector("#cVi").value.trim().slice(0,120),
     status:m.querySelector("#cSt").value, speakers:{A:{name:m.querySelector("#cAn").value.trim().slice(0,40)||"A",av:m.querySelector("#cAa").value.trim().slice(0,4)||"🧑🏻"},B:{name:m.querySelector("#cBn").value.trim().slice(0,40)||"B",av:m.querySelector("#cBa").value.trim().slice(0,4)||"👧🏻"}},
-    vocab:parseVocab(m.querySelector("#cVoc").value, langOf(m.querySelector("#cLv").value)).slice(0,40), dialogue:parseDlg(m.querySelector("#cDlg").value).slice(0,120), grammar:parseGram(m.querySelector("#cGra").value).slice(0,8), culture:parseCul(m.querySelector("#cCul").value).slice(0,8), updatedAt:Date.now()});
+    vocab:parseVocab(m.querySelector("#cVoc").value, langOf(m.querySelector("#cLv").value)).slice(0,40), dialogue:parseDlg(m.querySelector("#cDlg").value).slice(0,120), grammar:parseGram(m.querySelector("#cGra").value).slice(0,8).map(g=>{ const o=(L.grammar||[]).find(x=>x.t===g.t&&x.pr); if(o) g.pr=o.pr; return g; }), culture:parseCul(m.querySelector("#cCul").value).slice(0,8), updatedAt:Date.now()});
   { const drop=m.querySelector("#cDrop"), fin=m.querySelector("#cFile"), T=m.querySelector("#cDropT");
     const handle=async f=>{ T.textContent="⏳ Đang đọc "+f.name+"…"; err("");
       try{ const lv=m.querySelector("#cLv").value, lg=langOf(lv); const raw=await bookToText(f,lg,t=>{ T.textContent="⏳ "+t; }); const isOcr=fileToText.ocr;
@@ -2063,7 +2064,7 @@ function wordCard(i){
   if(st) st.onclick=()=>{ const d=m.querySelector("#wcDeep"); const open=d.classList.contains("hidden");
     d.classList.toggle("hidden",!open); m.classList.toggle("wcard-wide",open); st.classList.toggle("on",open);
     if(open){ d.innerHTML=`<div class="wc-deep-in"></div>`; TV.text=v.w; TV.idx=0; renderWriting(d.querySelector(".wc-deep-in"),{embedded:true,words:[]}); } else d.innerHTML=""; };
-  setTimeout(()=>say(v.w,.8),150);
+  setTimeout(()=>{ if(m.isConnected) say(v.w,.8); },150);
 }
 /* 3. Thẻ nhớ */
 function rFlash(el){
@@ -2091,7 +2092,9 @@ function rFlash(el){
 function rGram(el){
   const G=LS.grammar||[];
   if(!G.length){ el.innerHTML=`<div class="empty"><div class="ic">📐</div>Bài này chưa có phần ngữ pháp.</div>`; markDone(3); return; }
-  el.innerHTML=guide("Đọc giải thích, bấm 🔊 để nghe câu mẫu.")+G.map((g,i)=>`<div class="gp"><h3>${i+1}. ${esc(g.t)}</h3>${g.f?`<div class="formula zh">${esc(g.f)}</div>`:""}<div>${esc(g.d)}</div><div class="exs">${(g.ex||[]).map(e=>`<div><button class="btn sm" data-say="${esc(e[0])}">🔊</button><span class="zhs zh">${zhLine(tok(e[0]))}</span><span class="vi">${esc(e[1])}</span></div>`).join("")}</div></div>`).join("");
+  el.innerHTML=guide("Đọc giải thích, bấm 🔊 để nghe câu mẫu.")+G.map((g,i)=>`<div class="gp"><h3>${i+1}. ${esc(g.t)}</h3>${g.f?`<div class="formula zh">${esc(g.f)}</div>`:""}<div>${esc(g.d)}</div><div class="exs">${(g.ex||[]).map(e=>`<div><button class="btn sm" data-say="${esc(e[0])}">🔊</button><span class="zhs zh">${zhLine(tok(e[0]))}</span><span class="vi">${esc(e[1])}</span></div>`).join("")}</div>${g.pr&&g.pr.q?`<div class="gpr"><button class="gpr-h" data-gpr="${i}">✍️ Luyện tập <em>▸</em></button><div class="gpr-b hidden"><div class="gpr-q zh">${esc(g.pr.q)}</div>${g.pr.a?`<button class="btn sm" data-gpa="${i}">💡 Xem gợi ý đáp án</button><div class="gpr-a zh hidden">${esc(g.pr.a)}</div>`:""}</div></div>`:""}</div>`).join("");
+  el.querySelectorAll("[data-gpr]").forEach(b=>b.onclick=()=>{ const bd=b.nextElementSibling; const op=bd.classList.toggle("hidden"); b.querySelector("em").textContent=op?"▸":"▾"; });
+  el.querySelectorAll("[data-gpa]").forEach(b=>b.onclick=()=>{ const a=b.nextElementSibling; const sh=a.classList.toggle("hidden"); b.textContent=sh?"💡 Xem gợi ý đáp án":"🙈 Ẩn gợi ý"; });
   el.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
   markDone(3);
 }
@@ -4421,8 +4424,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
