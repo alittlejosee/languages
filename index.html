@@ -882,10 +882,72 @@ body.side-mini .sn{justify-content:center;padding:10px 0}body.side-mini .sng-h{j
 .opt.on{background:var(--p);color:#fff;border-color:var(--p)}.tb-ex{margin-top:6px;font-size:13.5px;color:#40546b}
 .tb-open{width:100%;margin:6px 0;font-size:17px}.tb-hint{margin-top:6px;padding:8px 12px;background:#eef8ee;border-radius:10px;white-space:pre-line;line-height:1.7}
 .gpr-in{display:inline-block;width:auto;min-width:120px;max-width:100%;border:none;border-bottom:2px solid var(--p);background:#fff;border-radius:6px 6px 0 0;padding:2px 8px;margin:0 4px;font-size:16px}.gpr-in.good{border-color:#2f7d32;background:#eef8ee}.gpr-in.bad{border-color:#d4a017;background:#fff8e1}.gpr-sum{margin-top:8px;font-size:14px;line-height:1.8}
+.stage:has(> .cap){aspect-ratio:auto;display:flex;flex-direction:column}
+.stage:has(> .cap) .ppl{position:relative;inset:auto;flex:0 0 auto;height:250px;padding:84px 0 0;align-items:flex-start}
+.stage:has(> .cap) .cap{position:relative;background:rgba(14,30,54,.94);padding:14px 18px 18px;min-height:120px;display:flex;flex-direction:column;justify-content:center}
+.stage:has(> .cap) .cap .zhs{font-size:25px;line-height:2.5;letter-spacing:.02em}
+.stage:has(> .cap) .cap rt{font-size:.5em;letter-spacing:0;color:#ffe9a8}
+.stage:has(> .cap) .cap .vi{font-size:15px;margin-top:6px;color:#e3ecf7;opacity:1}
+@media(max-width:820px){.stage:has(> .cap) .ppl{height:190px;padding-top:70px}.stage:has(> .cap) .cap .zhs{font-size:20px;line-height:2.4}}
+#v-yedu{position:relative;min-height:100vh}
+#ydSky{position:fixed;inset:0;pointer-events:none;z-index:0}
+#v-yedu .pg-h h1{color:#fff3c4;text-shadow:0 0 18px rgba(255,236,160,.35)}#v-yedu .pg-h .muted,#v-yedu .pg-h p{color:#c9d4ee}#v-yedu .tagzh{background:rgba(255,236,170,.15);color:#ffe9a8}
+#v-yedu .yd-card{background:linear-gradient(135deg,rgba(29,43,74,.78),rgba(44,62,107,.78));border:1px solid rgba(255,236,170,.18);box-shadow:0 6px 24px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+#v-yedu .yd-card:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 1px rgba(255,236,170,.35)}
+#v-yedu .yd-card:after{content:"✦";position:absolute;right:18px;top:10px;color:#ffe9a8;opacity:.5;font-size:14px;animation:ydTw 3s ease-in-out infinite}
+#v-yedu .yd-wrap:has(.yd-adm) .yd-card:after{right:96px}
+@keyframes ydTw{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:.9;transform:scale(1.15)}}
+#v-yedu .yd-player{background:linear-gradient(160deg,rgba(14,24,52,.85),rgba(42,58,98,.85));border:1px solid rgba(255,236,170,.2)}
+#v-yedu .btn:not(.p):not(.dark){background:rgba(255,255,255,.92)}
+#v-yedu #ydBack{background:rgba(255,255,255,.12);color:#ffe9a8;border-color:rgba(255,236,170,.3)}
+#v-yedu .yd-bar2 .btn{background:rgba(255,255,255,.12)!important;color:#ffe9a8;border-color:rgba(255,236,170,.3)}
+@media(prefers-reduced-motion:reduce){#v-yedu .yd-card:after{animation:none}}
+body:has(#v-yedu:not(.hidden)) .appmain{background:radial-gradient(ellipse at 70% 0%,#2c3f78 0%,transparent 55%),radial-gradient(ellipse at 10% 100%,#3a2a66 0%,transparent 50%),linear-gradient(180deg,#070d24 0%,#101c44 55%,#1d2b5c 100%);background-attachment:fixed}body:has(#v-yedu:not(.hidden)) #v-yedu{margin-top:0}
+#ambSky,#ambDeco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}#ambDeco{z-index:0}
+.app{position:relative;z-index:1}
+/* Buổi sáng */
+body.amb-day .amb-sun{position:absolute;right:-70px;top:-90px;width:260px;height:260px;opacity:.85}
+body.amb-day .amb-core{position:absolute;inset:60px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fff7c2,#ffd54a 55%,#ffb300);box-shadow:0 0 60px 25px rgba(255,210,80,.45),0 0 140px 60px rgba(255,230,140,.3)}
+body.amb-day .amb-rays{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,214,90,.32) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,transparent 46px,#000 52px,#000 70%,transparent 72%);mask:radial-gradient(circle,transparent 46px,#000 52px,#000 70%,transparent 72%);animation:ambSpin 40s linear infinite}
+body.amb-day .amb-rainbow{position:absolute;left:-5vw;top:14vh;width:110vw;height:auto;aspect-ratio:1;border-radius:50%;opacity:.3;background:radial-gradient(circle closest-side,transparent 86%,#a77bff 86.5%,#5b8dff 88.2%,#45c4ff 89.9%,#5fd38a 91.6%,#ffe14d 93.3%,#ffa94d 95%,#ff6b6b 96.7%,transparent 98.4%);filter:blur(2px);animation:ambGlow 9s ease-in-out infinite}
+body .amb-cloud{position:absolute;width:160px;height:46px;border-radius:40px;background:rgba(255,255,255,.85);filter:blur(1px);box-shadow:0 6px 20px rgba(120,160,210,.15)}
+body .amb-cloud:before,body .amb-cloud:after{content:"";position:absolute;background:inherit;border-radius:50%}
+body .amb-cloud:before{width:70px;height:70px;left:24px;top:-34px}body.amb-day .amb-cloud:after{width:54px;height:54px;left:78px;top:-24px}
+body .amb-cloud.c1{top:70px;left:-200px;animation:ambDrift 70s linear infinite}
+body .amb-cloud.c2{top:180px;left:-200px;transform:scale(.7);opacity:.8;animation:ambDrift 95s linear infinite;animation-delay:-40s}
+body .amb-cloud.c3{top:40px;left:-200px;transform:scale(.55);opacity:.7;animation:ambDrift 120s linear infinite;animation-delay:-80s}
+@keyframes ambSpin{to{transform:rotate(360deg)}}@keyframes ambGlow{0%,100%{opacity:.22}50%{opacity:.34}}@keyframes ambDrift{from{translate:0 0}to{translate:calc(100vw + 400px) 0}}
+/* Buổi tối */
+body.amb-night{background:radial-gradient(ellipse at 75% -10%,#2c3f78 0%,transparent 55%),radial-gradient(ellipse at 0% 100%,#3a2a66 0%,transparent 50%),linear-gradient(180deg,#070d24 0%,#101c44 55%,#1d2b5c 100%);background-attachment:fixed}
+body.amb-night .amb-moon{position:absolute;right:-22px;top:-22px;width:96px;height:96px;opacity:.9;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe6,#f3e3a6 60%,#d9c27a);box-shadow:0 0 40px 12px rgba(255,236,170,.35),0 0 120px 40px rgba(255,236,170,.12)}
+body.amb-night .amb-moon:after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:rgba(200,180,110,.35);left:22px;top:38px;box-shadow:24px -12px 0 -3px rgba(200,180,110,.3),18px 16px 0 -5px rgba(200,180,110,.3)}
+body.amb-dark .amb-lt{color:#eef3ff!important;text-shadow:0 1px 8px rgba(0,0,0,.35)}body.amb-dark .amb-lt.muted,body.amb-dark .muted.amb-lt{color:#c3cfea!important}
+body.amb-dark .side{background:rgba(255,255,255,.93)}
+@media(prefers-reduced-motion:reduce){body.amb-day .amb-rays,body.amb-day .amb-rainbow,body .amb-cloud{animation:none}}
+@media(max-width:900px){body.amb-day .amb-sun{transform:scale(.6);right:-90px;top:-100px}body.amb-night .amb-moon{width:60px;height:60px;top:-14px;right:-14px}}
+@media(min-width:901px){body.amb-day .amb-rainbow{left:calc(248px - (100vw - 248px)*.05);width:calc((100vw - 248px)*1.1)}body.amb-day.side-mini .amb-rainbow{left:calc(76px - (100vw - 76px)*.05);width:calc((100vw - 76px)*1.1)}}
+@media(max-width:900px){body.amb-day .amb-rainbow{left:-40vw;width:180vw;top:10vh}}
+.seg-wrap{flex-wrap:wrap}
+/* Bình minh */
+body.amb-dawn{background:linear-gradient(180deg,#5d6fb0 0%,#a59bd0 22%,#f3b3c4 48%,#ffd6b0 72%,#fff1dc 100%);background-attachment:fixed}
+/* Hoàng hôn */
+body.amb-dusk{background:linear-gradient(180deg,#2b2a5c 0%,#6b3f7f 25%,#c25a7c 48%,#f08a5d 70%,#ffc278 100%);background-attachment:fixed}
+.amb-lowsun{position:absolute;bottom:-90px;width:260px;height:260px;border-radius:50%}
+.amb-lowsun.dawn{left:12%;background:radial-gradient(circle,#fff6d8 0%,#ffd38a 45%,#ffad6b 70%,rgba(255,173,107,0) 72%);box-shadow:0 0 120px 70px rgba(255,190,120,.45)}
+.amb-lowsun.dusk{right:12%;background:radial-gradient(circle,#ffe2a0 0%,#ff9d5c 45%,#f0603f 70%,rgba(240,96,63,0) 72%);box-shadow:0 0 140px 80px rgba(255,120,70,.45)}
+.amb-haze{position:absolute;left:0;right:0;bottom:0;height:35vh;background:linear-gradient(0deg,rgba(255,220,180,.35),transparent)}
+body.amb-dusk .amb-cloud{background:rgba(255,190,170,.55)}body.amb-dawn .amb-cloud{background:rgba(255,236,236,.75)}
+/* Mưa */
+body.amb-rain.amb-day,body.amb-rain.amb-dawn{background:linear-gradient(180deg,#8e9db3 0%,#b8c4d4 45%,#dfe5ee 100%);background-attachment:fixed}
+body.amb-rain .amb-cloud{background:rgba(150,162,182,.85)}
+.amb-raincloud{position:absolute;left:-10%;right:-10%;top:-60px;height:180px;background:radial-gradient(ellipse at 20% 60%,rgba(120,132,152,.75),transparent 55%),radial-gradient(ellipse at 55% 40%,rgba(110,122,145,.8),transparent 55%),radial-gradient(ellipse at 85% 65%,rgba(125,137,158,.75),transparent 55%);filter:blur(6px);animation:ambRainDrift 30s ease-in-out infinite alternate}
+@keyframes ambRainDrift{to{transform:translateX(4%)}}
+@media(prefers-reduced-motion:reduce){.amb-raincloud{animation:none}}
 </style>
 </head>
 <body>
 <div class="app">
+<canvas id="ambSky" aria-hidden="true"></canvas><div id="ambDeco" aria-hidden="true"></div>
 <aside class="side" id="side">
   <div class="side-brand" data-go="home"><div class="logo"><svg width="34" height="34" viewBox="0 0 40 40"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--p-soft)"/><stop offset="1" style="stop-color:var(--p)"/></linearGradient></defs><path d="M20 3l4.6 10.4L36 14.6l-8.6 7.6L30 34 20 28.2 10 34l2.6-11.8L4 14.6l11.4-1.2z" fill="url(#g)" style="stroke:var(--p-dark)" stroke-width="1.2" stroke-linejoin="round"/><circle cx="31" cy="7" r="1.6" fill="#f2b84b"/><circle cx="7" cy="27" r="1.1" fill="#a9cff2"/></svg></div><h1 class="zh">舒如天上星</h1></div>
   <button class="side-mini-btn" id="sideMini" title="Thu gọn / mở rộng thanh menu">«</button>
@@ -933,7 +995,7 @@ body.side-mini .sn{justify-content:center;padding:10px 0}body.side-mini .sng-h{j
 <section id="v-phatam" class="view hidden"><div class="wrap" style="max-width:1000px" id="phatamBody"></div></section>
 <section id="v-chuhan" class="view hidden"><div class="wrap" style="max-width:1000px" id="chuhanBody"></div></section>
 <section id="v-vanhoa" class="view hidden"><div class="wrap" style="max-width:1000px" id="vanhoaBody"></div></section>
-<section id="v-yedu" class="view hidden"><div class="wrap" style="max-width:860px" id="yeduBody"></div></section>
+<section id="v-yedu" class="view hidden"><canvas id="ydSky" aria-hidden="true"></canvas><div class="wrap" style="max-width:860px;position:relative;z-index:1" id="yeduBody"></div></section>
 <section id="v-reg" class="view hidden"><div class="wrap" id="regBody" style="max-width:520px"></div></section>
 <!-- ===== SỔ TỪ ===== -->
 <section id="v-book" class="view hidden"><div class="wrap" style="max-width:860px" id="bookBody"></div></section>
@@ -1221,7 +1283,7 @@ function route(){
   document.body.classList.remove("admin-mode");
   renderLocks();
   if(v==="write") renderWriting($("#writeBody"),{});
-  if(v==="phatam") renderPhatam(); if(v==="chuhan") renderChuhan(); if(v==="yedu") renderYedu(); else stopYedu(); if(v==="vanhoa") renderVanhoa();
+  if(v==="phatam") renderPhatam(); if(v==="chuhan") renderChuhan(); if(v==="yedu"){ renderYedu(); skyStart(); } else stopYedu(); if(v==="vanhoa") renderVanhoa();
   if(v!=="story"){ stopStory(); if(rfRd.on) rfReadStop(); }
   if(v==="lesson"){ const id=h.slice(7); const L=id==="preview"?PREVIEW:getLesson(id); if(!L){ if(lessonsState==="loading"){ $("#content").innerHTML='<p class="muted">Đang tải bài học…</p>'; setTimeout(route,800); return; } location.hash="course-"+curLevel; return; }
     if(!L.preview&&!lvApproved(L.level)){ if(!ACCESS_LOADED){ $("#content").innerHTML='<p class="muted">Đang kiểm tra quyền học…</p>'; clearTimeout(route._a); route._a=setTimeout(route,600); return; } curLevel=L.level; toast(`🔒 Cần được duyệt cấp độ ${lvName(L.level)} trước khi học`); location.replace("#course-"+L.level); return; }
@@ -2673,6 +2735,11 @@ function openSettings(){
   const f=store.get("srt_font","modern");
   const m=modal(`<h3>⚙️ Cài đặt<button class="x" data-close>×</button></h3>
     <div class="set-sec"><h4>Bộ màu nền (pastel)</h4><div class="themes" id="setThemes"></div></div>
+    <div class="set-sec"><h4>Hiệu ứng nền</h4>
+      <div class="muted" style="font-size:12px;margin:2px 0 4px">Thời điểm trong ngày</div><div class="seg seg-wrap" id="setAmb">${[["auto","Tự động"],["dawn","🌅 Bình minh"],["day","☀️ Ngày"],["dusk","🌇 Hoàng hôn"],["night","🌙 Đêm"],["off","Tắt"]].map(o=>`<button data-v="${o[0]}" class="${(SET.amb||"auto")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div>
+      <div class="muted" style="font-size:12px;margin:8px 0 4px">Mùa</div><div class="seg seg-wrap" id="setSeason">${[["auto","Tự động"],["spring","🌸 Xuân"],["summer","🌻 Hạ"],["autumn","🍁 Thu"],["winter","❄️ Đông"]].map(o=>`<button data-v="${o[0]}" class="${(SET.season||"auto")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div>
+      <div class="muted" style="font-size:12px;margin:8px 0 4px">Thời tiết</div><div class="seg seg-wrap" id="setWx">${[["season","Theo mùa"],["rain","🌧 Mưa"],["snow","❄️ Tuyết"],["none","Trời quang"]].map(o=>`<button data-v="${o[0]}" class="${(SET.wx||"season")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div>
+      <div class="muted" style="font-size:12px;margin-top:6px">Tự động: 5–7h bình minh · 7–17h ban ngày · 17–19h hoàng hôn · tối là bầu trời sao. Mùa theo tháng: Xuân 2–4 (hoa đào rơi) · Hạ 5–7 (nắng lấp lánh, đêm có đom đóm) · Thu 8–10 (lá vàng rơi) · Đông 11–1 (tuyết).</div></div>
     <div class="set-sec"><h4>Tự đổi màu theo thời gian</h4><div class="seg" id="setAuto">${[[0,"Tắt"],[15,"15s"],[30,"30s"],[60,"60s"]].map(o=>`<button data-v="${o[0]}" class="${SET.auto===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
     <div class="set-sec"><h4>Kiểu chữ Hán</h4><div class="seg" id="setFont">${[["kai","Chữ Khải 楷"],["modern","Hiện đại"],["song","Tống thể"]].map(o=>`<button data-v="${o[0]}" class="${f===o[0]?"on":""}">${o[1]}</button>`).join("")}</div>
       <div class="zh" id="fontPrev" style="font-size:30px;margin-top:8px">认识你很高兴</div></div>
@@ -2680,6 +2747,7 @@ function openSettings(){
     <div class="set-sec"><h4>Cỡ chữ trong bài học & bài đọc</h4><div class="seg" id="setSize"><button data-d="-1">A−</button><button disabled id="sizeV" style="min-width:64px">${Math.round(SET.size*100)}%</button><button data-d="1">A+</button></div></div>
     <div style="text-align:right"><button class="btn p" data-close>Xong</button></div>`);
   drawThemeBtns();
+  [["#setAmb","amb"],["#setSeason","season"],["#setWx","wx"]].forEach(([id,key])=>m.querySelectorAll(id+" button").forEach(b=>b.onclick=()=>{ SET[key]=b.dataset.v; saveSet(); m.querySelectorAll(id+" button").forEach(x=>x.classList.toggle("on",x===b)); ambApply(); }));
   m.querySelectorAll("#setAuto button").forEach(b=>b.onclick=()=>{ SET.auto=+b.dataset.v; saveSet(); m.querySelectorAll("#setAuto button").forEach(x=>x.classList.toggle("on",x===b)); toast(SET.auto?`Tự đổi màu mỗi ${SET.auto} giây`:"Đã tắt tự đổi màu"); });
   m.querySelectorAll("#setFont button").forEach(b=>b.onclick=()=>{ setFont(b.dataset.v); const fs=$("#fontSel"); if(fs) fs.value=b.dataset.v; m.querySelectorAll("#setFont button").forEach(x=>x.classList.toggle("on",x===b)); });
   m.querySelectorAll("#setPy button").forEach(b=>b.onclick=()=>{ const on=b.dataset.v==="1"; document.body.classList.toggle("nopy",!on); store.set("srt_py",on); m.querySelectorAll("#setPy button").forEach(x=>x.classList.toggle("on",x===b)); });
@@ -3916,6 +3984,111 @@ function ydSecs(B){ const out=[]; let cur={h:null,items:[]}; B.forEach((b,i)=>{ 
 function ydKeep(fn){ const y=window.scrollY; fn(); window.scrollTo(0,y); }
 function ydLex(a){ LEX=Object.assign({},BASE_DICT); (a.vocab||[]).forEach(v=>{ if(v[0]) LEX[v[0]]=[v[1],v[4]]; }); }
 function stopYedu(){ YD.playing=false; YD.tok++; try{ speechSynthesis.cancel(); }catch(e){} }
+
+
+
+/* chữ nằm thẳng trên nền tối → đổi sang màu sáng */
+function ambMarkText(){
+  document.querySelectorAll(".amb-lt").forEach(e=>e.classList.remove("amb-lt"));
+  if(!document.body.classList.contains("amb-dark")) return;
+  const view=document.querySelector(".appmain > .view:not(.hidden)"); if(!view) return;
+  const opaque=new Map();
+  const isOpaque=el=>{ if(opaque.has(el)) return opaque.get(el); const cs=getComputedStyle(el); const bg=cs.backgroundColor; let o=cs.backgroundImage!=="none"||(bg&&bg!=="transparent"&&!/rgba\([^)]*,\s*0(\.0+)?\)$/.test(bg)&&!(/rgba/.test(bg)&&parseFloat(bg.split(",")[3])<.35)); if(el.tagName==="INPUT"||el.tagName==="TEXTAREA"||el.tagName==="SELECT") o=true; opaque.set(el,o); return o; };
+  const onDark=el=>{ for(let e=el;e&&e!==view;e=e.parentElement){ if(e.tagName==="BUTTON") return false; if(isOpaque(e)) return false; } return true; };
+  view.querySelectorAll("*").forEach(el=>{ if(!el.childNodes.length) return; let txt=false; for(const n of el.childNodes) if(n.nodeType===3&&n.textContent.trim()){ txt=true; break; } if(txt&&onDark(el)) el.classList.add("amb-lt"); });
+}
+let ambMO=null, ambT=0;
+function ambWatch(){ if(ambMO) return; const main=document.querySelector(".appmain"); if(!main) return; ambMO=new MutationObserver(()=>{ if(!document.body.classList.contains("amb-dark")) return; clearTimeout(ambT); ambT=setTimeout(ambMarkText,120); }); ambMO.observe(main,{childList:true,subtree:true}); }
+/* ---------- Hiệu ứng nền: bình minh / ban ngày / hoàng hôn / ban đêm · 4 mùa · mưa / tuyết ---------- */
+const AMB={raf:0,key:"",stars:[],shoot:null,last:0,parts:[],phase:"",season:"",wx:""};
+const PHASE_NAME={dawn:"🌅 Bình minh",day:"☀️ Ban ngày",dusk:"🌇 Hoàng hôn",night:"🌙 Ban đêm"};
+const SEASON_NAME={spring:"🌸 Xuân",summer:"🌻 Hạ",autumn:"🍁 Thu",winter:"❄️ Đông"};
+function ambState(){ const v=curView(); const S=typeof SET!=="undefined"?SET:{}; let ph=S.amb||"auto";
+  if(ph==="off"||v==="yedu"||v==="admin"||v==="lesson") return null;
+  const d=new Date(), h=d.getHours()+d.getMinutes()/60;
+  if(ph==="auto") ph=h>=5&&h<7?"dawn":h>=7&&h<17?"day":h>=17&&h<19?"dusk":"night";
+  let se=S.season||"auto"; const mo=d.getMonth()+1;
+  if(se==="auto") se=mo>=2&&mo<=4?"spring":mo>=5&&mo<=7?"summer":mo>=8&&mo<=10?"autumn":"winter";
+  let wx=S.wx||"season"; if(wx==="season") wx=se==="winter"?"snow":"";
+  return {ph,se,wx}; }
+function ambApply(){
+  const st=ambState(); const B=document.body;
+  ["dawn","day","dusk","night"].forEach(x=>B.classList.toggle("amb-"+x,!!st&&st.ph===x));
+  ["spring","summer","autumn","winter"].forEach(x=>B.classList.toggle("amb-s-"+x,!!st&&st.se===x));
+  B.classList.toggle("amb-rain",!!st&&st.wx==="rain"); B.classList.toggle("amb-dark",!!st&&(st.ph==="night"||st.ph==="dusk"));
+  const key=st?st.ph+"|"+st.se+"|"+st.wx+"|"+innerWidth+"x"+innerHeight:"";
+  ambWatch(); setTimeout(ambMarkText,60);
+  if(key===AMB.key&&(AMB.raf||!st)) return; AMB.key=key; cancelAnimationFrame(AMB.raf); AMB.raf=0;
+  const deco=$("#ambDeco"), cv=$("#ambSky"); if(!deco||!cv) return; const ctx=cv.getContext("2d");
+  if(!st){ deco.innerHTML=""; ctx.clearRect(0,0,cv.width,cv.height); return; }
+  const {ph,se,wx}=st;
+  deco.innerHTML=(ph==="day"&&wx!=="rain"?`<div class="amb-sun"><div class="amb-rays"></div><div class="amb-core"></div></div><div class="amb-rainbow"></div>`:"")
+    +(ph==="dawn"?`<div class="amb-lowsun dawn"></div><div class="amb-haze"></div>`:"")+(ph==="dusk"?`<div class="amb-lowsun dusk"></div><div class="amb-haze"></div>`:"")
+    +(ph==="night"&&wx!=="rain"?`<div class="amb-moon"></div>`:"")
+    +(ph!=="night"?`<div class="amb-cloud c1"></div><div class="amb-cloud c2"></div><div class="amb-cloud c3"></div>`:"")
+    +(wx==="rain"?`<div class="amb-raincloud"></div>`:"");
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const r=devicePixelRatio||1; cv.width=innerWidth*r; cv.height=innerHeight*r; const W=cv.width,H=cv.height, area=innerWidth*innerHeight;
+  const R=Math.random;
+  AMB.stars=ph==="night"&&wx!=="rain"?Array.from({length:Math.round(area/6000)},()=>({x:R()*W,y:R()*H,r:(R()*1.2+.3)*r,p:R()*6.3,s:.5+R()*1.5,c:R()<.18?"255,232,160":"255,255,255"})):
+    ph==="dawn"?Array.from({length:Math.round(area/30000)},()=>({x:R()*W,y:R()*H*.35,r:(R()*.9+.3)*r,p:R()*6.3,s:.5+R()*1.5,c:"255,255,255",dim:.45})):[];
+  // hạt: mưa, tuyết, hoa, lá, đom đóm, nắng
+  let kind=wx==="rain"?"rain":wx==="snow"?"snow":se==="spring"?"petal":se==="autumn"?"leaf":se==="summer"?(ph==="night"||ph==="dusk"?"firefly":"mote"):"";
+  if(reduce) kind="";
+  const dens={rain:area/5000,snow:area/14000,petal:area/38000,leaf:area/45000,firefly:area/40000,mote:area/35000}[kind]||0;
+  const mk=init=>{ const p={x:R()*W,y:init?R()*H:-20*r,z:.5+R()*.8,rot:R()*6.3,vr:(R()-.5)*.04,ph:R()*6.3};
+    if(kind==="rain"){ p.vy=(14+R()*8)*r*p.z; p.vx=-2.2*r*p.z; p.len=(12+R()*10)*r*p.z; }
+    if(kind==="snow"){ p.vy=(.5+R()*1)*r*p.z; p.size=(1.2+R()*2.6)*r*p.z; }
+    if(kind==="petal"){ p.vy=(.6+R()*.8)*r; p.size=(5+R()*5)*r*p.z; p.col=["255,183,197","255,205,215","255,160,185","255,230,236"][Math.floor(R()*4)]; }
+    if(kind==="leaf"){ p.vy=(.8+R()*1)*r; p.size=(7+R()*7)*r*p.z; p.col=["214,112,36","232,152,40","190,70,40","240,190,60","160,90,40"][Math.floor(R()*5)]; }
+    if(kind==="firefly"){ p.y=H*(.3+R()*.7); p.vx=(R()-.5)*.6*r; p.vy=(R()-.5)*.4*r; p.size=(1.6+R()*1.6)*r; }
+    if(kind==="mote"){ p.y=init?R()*H:H+10*r; p.vy=-(.15+R()*.35)*r; p.vx=(R()-.5)*.3*r; p.size=(1.5+R()*2.5)*r; }
+    return p; };
+  AMB.parts=Array.from({length:Math.round(dens)},()=>mk(true));
+  const leafPath=(s)=>{ ctx.beginPath(); ctx.moveTo(0,-s); ctx.quadraticCurveTo(s*.9,-s*.2,0,s); ctx.quadraticCurveTo(-s*.9,-s*.2,0,-s); ctx.fill(); ctx.strokeStyle="rgba(90,50,20,.35)"; ctx.lineWidth=.8*r; ctx.beginPath(); ctx.moveTo(0,-s*.8); ctx.lineTo(0,s*1.15); ctx.stroke(); };
+  const frame=t=>{ if(AMB.key!==key){ AMB.raf=0; return; } ctx.clearRect(0,0,W,H);
+    AMB.stars.forEach(s2=>{ const a=(reduce?.75:.3+.7*Math.abs(Math.sin(s2.p+t/1000*s2.s)))*(s2.dim||1); ctx.beginPath(); ctx.fillStyle=`rgba(${s2.c},${a})`; ctx.arc(s2.x,s2.y,s2.r,0,6.3); ctx.fill();
+      if(!s2.dim&&s2.r>1.15*r&&a>.88){ ctx.strokeStyle=`rgba(${s2.c},${(a-.88)*3})`; ctx.lineWidth=.6*r; ctx.beginPath(); ctx.moveTo(s2.x-s2.r*4,s2.y); ctx.lineTo(s2.x+s2.r*4,s2.y); ctx.moveTo(s2.x,s2.y-s2.r*4); ctx.lineTo(s2.x,s2.y+s2.r*4); ctx.stroke(); } });
+    if(ph==="night"&&wx!=="rain"&&!reduce){ if(!AMB.shoot&&t-AMB.last>4000+R()*5000){ AMB.last=t; AMB.shoot={x:W*(.3+R()*.7),y:R()*H*.4,vx:-(6+R()*4)*r,vy:(3+R()*2)*r,life:1}; }
+      const sh=AMB.shoot; if(sh){ const g=ctx.createLinearGradient(sh.x,sh.y,sh.x-sh.vx*12,sh.y-sh.vy*12); g.addColorStop(0,`rgba(255,250,220,${sh.life})`); g.addColorStop(1,"rgba(255,250,220,0)"); ctx.strokeStyle=g; ctx.lineWidth=2*r; ctx.beginPath(); ctx.moveTo(sh.x,sh.y); ctx.lineTo(sh.x-sh.vx*12,sh.y-sh.vy*12); ctx.stroke(); sh.x+=sh.vx; sh.y+=sh.vy; sh.life-=.018; if(sh.life<=0||sh.x<0||sh.y>H) AMB.shoot=null; } }
+    const dark=ph==="night"||ph==="dusk";
+    AMB.parts.forEach((p,k)=>{
+      if(kind==="rain"){ ctx.strokeStyle=dark?`rgba(190,210,255,${.35*p.z})`:`rgba(90,130,190,${.38*p.z})`; ctx.lineWidth=1.1*r*p.z; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x+p.vx*1.3,p.y+p.len); ctx.stroke(); p.x+=p.vx; p.y+=p.vy;
+        if(p.y>H){ if(R()<.3){ ctx.strokeStyle=dark?"rgba(190,210,255,.35)":"rgba(90,130,190,.35)"; ctx.beginPath(); ctx.ellipse(p.x,H-3*r,4*r,1.5*r,0,0,6.3); ctx.stroke(); } AMB.parts[k]=mk(false); AMB.parts[k].y=-R()*40*r; } return; }
+      if(kind==="snow"){ p.ph+=.01; p.x+=Math.sin(p.ph)*.5*r; p.y+=p.vy; ctx.beginPath(); ctx.fillStyle=dark?`rgba(255,255,255,${.55+.4*p.z/1.3})`:`rgba(255,255,255,${.75})`; ctx.shadowColor=dark?"rgba(255,255,255,.6)":"rgba(140,170,210,.55)"; ctx.shadowBlur=4*r; ctx.arc(p.x,p.y,p.size,0,6.3); ctx.fill(); ctx.shadowBlur=0; if(p.y>H+10*r) AMB.parts[k]=mk(false); return; }
+      if(kind==="petal"||kind==="leaf"){ p.ph+=.015; p.x+=Math.sin(p.ph)*(kind==="leaf"?1.1:.8)*r+.25*r; p.y+=p.vy; p.rot+=p.vr+Math.sin(p.ph)*.01;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.scale(1,.55+.45*Math.abs(Math.sin(p.ph*1.7)));
+        if(kind==="petal"){ ctx.fillStyle=`rgba(${p.col},.85)`; ctx.beginPath(); ctx.ellipse(0,0,p.size*.55,p.size,0,0,6.3); ctx.fill(); ctx.fillStyle="rgba(255,255,255,.35)"; ctx.beginPath(); ctx.ellipse(-p.size*.12,-p.size*.2,p.size*.18,p.size*.45,0,0,6.3); ctx.fill(); }
+        else { ctx.fillStyle=`rgba(${p.col},.88)`; leafPath(p.size); }
+        ctx.restore(); if(p.y>H+20*r||p.x>W+30*r) AMB.parts[k]=mk(false); return; }
+      if(kind==="firefly"){ p.ph+=.03; p.x+=p.vx+Math.sin(p.ph)*.3*r; p.y+=p.vy+Math.cos(p.ph*.8)*.25*r; if(R()<.01){ p.vx=(R()-.5)*.6*r; p.vy=(R()-.5)*.4*r; }
+        if(p.x<0||p.x>W||p.y<H*.2||p.y>H){ AMB.parts[k]=mk(true); return; }
+        const a=.25+.75*Math.max(0,Math.sin(t/700+p.rot*3)); const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*6); g.addColorStop(0,`rgba(230,255,140,${a})`); g.addColorStop(1,"rgba(230,255,140,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.size*6,0,6.3); ctx.fill(); return; }
+      if(kind==="mote"){ p.ph+=.02; p.x+=p.vx+Math.sin(p.ph)*.2*r; p.y+=p.vy; const a=.25+.45*Math.abs(Math.sin(t/900+p.rot*2)); ctx.beginPath(); ctx.fillStyle=`rgba(255,214,90,${a})`; ctx.shadowColor="rgba(255,200,60,.7)"; ctx.shadowBlur=6*r; ctx.arc(p.x,p.y,p.size,0,6.3); ctx.fill(); ctx.shadowBlur=0; if(p.y<-10*r) AMB.parts[k]=mk(false); }
+    });
+    AMB.raf=requestAnimationFrame(frame); };
+  AMB.raf=requestAnimationFrame(frame);
+}
+let ambRsT=0; window.addEventListener("resize",()=>{ clearTimeout(ambRsT); ambRsT=setTimeout(ambApply,200); });
+setInterval(ambApply,60000); window.addEventListener("hashchange",()=>setTimeout(ambApply,0)); setTimeout(ambApply,0);
+/* ---------- Bầu trời sao cho Đọc sách ban đêm ---------- */
+const SKY={raf:0,stars:[],shoot:null,last:0};
+function skyStart(){ const cv=$("#ydSky"); if(!cv) return; cancelAnimationFrame(SKY.raf);
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fit=()=>{ const r=devicePixelRatio||1; cv.width=innerWidth*r; cv.height=innerHeight*r; cv.style.width=innerWidth+"px"; cv.style.height=innerHeight+"px";
+    const n=Math.round(innerWidth*innerHeight/5500); SKY.stars=Array.from({length:n},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:(Math.random()*1.3+.3)*r,p:Math.random()*Math.PI*2,s:.6+Math.random()*1.6,c:Math.random()<.15?"255,236,170":"255,255,255"})); };
+  fit(); window.removeEventListener("resize",skyStart._fit); skyStart._fit=fit; window.addEventListener("resize",fit);
+  const ctx=cv.getContext("2d");
+  const frame=t=>{ if(curView()!=="yedu"){ SKY.raf=0; return; }
+    ctx.clearRect(0,0,cv.width,cv.height); const r=devicePixelRatio||1;
+    SKY.stars.forEach(st=>{ const a=reduce?.8:.35+.65*Math.abs(Math.sin(st.p+t/1000*st.s)); ctx.beginPath(); ctx.fillStyle=`rgba(${st.c},${a})`; ctx.arc(st.x,st.y,st.r,0,Math.PI*2); ctx.fill();
+      if(st.r>1.2*r&&a>.85){ ctx.strokeStyle=`rgba(${st.c},${(a-.85)*2.5})`; ctx.lineWidth=.6*r; ctx.beginPath(); ctx.moveTo(st.x-st.r*4,st.y); ctx.lineTo(st.x+st.r*4,st.y); ctx.moveTo(st.x,st.y-st.r*4); ctx.lineTo(st.x,st.y+st.r*4); ctx.stroke(); } });
+    if(!reduce){ if(!SKY.shoot&&t-SKY.last>3500+Math.random()*4000){ SKY.last=t; SKY.shoot={x:Math.random()*cv.width*.8+cv.width*.1,y:Math.random()*cv.height*.35,vx:-(6+Math.random()*4)*r,vy:(3+Math.random()*2)*r,life:1}; }
+      const sh=SKY.shoot; if(sh){ const g=ctx.createLinearGradient(sh.x,sh.y,sh.x-sh.vx*12,sh.y-sh.vy*12); g.addColorStop(0,`rgba(255,250,220,${sh.life})`); g.addColorStop(1,"rgba(255,250,220,0)");
+        ctx.strokeStyle=g; ctx.lineWidth=2*r; ctx.beginPath(); ctx.moveTo(sh.x,sh.y); ctx.lineTo(sh.x-sh.vx*12,sh.y-sh.vy*12); ctx.stroke(); sh.x+=sh.vx; sh.y+=sh.vy; sh.life-=.018; if(sh.life<=0||sh.x<0||sh.y>cv.height) SKY.shoot=null; } }
+    SKY.raf=requestAnimationFrame(frame); };
+  SKY.raf=requestAnimationFrame(frame);
+}
 function renderYedu(){
   CUR_LANG="zh"; const root=$("#yeduBody");
   if(YD.i<0||!ydAll()[YD.i]){
@@ -4477,8 +4650,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
