@@ -943,6 +943,8 @@ body.amb-rain .amb-cloud{background:rgba(150,162,182,.85)}
 .amb-raincloud{position:absolute;left:-10%;right:-10%;top:-60px;height:180px;background:radial-gradient(ellipse at 20% 60%,rgba(120,132,152,.75),transparent 55%),radial-gradient(ellipse at 55% 40%,rgba(110,122,145,.8),transparent 55%),radial-gradient(ellipse at 85% 65%,rgba(125,137,158,.75),transparent 55%);filter:blur(6px);animation:ambRainDrift 30s ease-in-out infinite alternate}
 @keyframes ambRainDrift{to{transform:translateX(4%)}}
 @media(prefers-reduced-motion:reduce){.amb-raincloud{animation:none}}
+.tb-other{color:#8a99ab;margin:0 2px}
+.gp-d{white-space:pre-line}.gp .formula{white-space:pre-line}
 </style>
 </head>
 <body>
@@ -2167,16 +2169,16 @@ function gprCheck(g,gi,box){
   Object.keys(Q).forEach(n=>{ const nb=Q[n].join("\n").match(/_{3,}/g)||[]; const my=ins.slice(k,k+nb.length); k+=nb.length; if(!my.length) return; tot++;
     const ansZh=(Aw[n]||[]).filter(x=>hasHan(x)).join(""); const A=norm(ansZh.replace(/^[AB][：:]/,""));
     const vals=my.map(x=>x.value.trim()); const empty=vals.some(v=>!v);
-    const good=!empty&&A&&vals.every(v=>A.includes(norm(v)));
-    my.forEach(x=>{ x.classList.remove("good","bad"); if(!empty) x.classList.add(good?"good":"bad"); });
+    const noAns=!A; const good=!empty&&!noAns&&vals.every(v=>A.includes(norm(v)));
+    my.forEach(x=>{ x.classList.remove("good","bad"); if(!empty&&!noAns) x.classList.add(good?"good":"bad"); });
     if(good) ok++;
-    rows.push(`<div>${empty?"⬜":good?"✅":"🟡"} <b>(${n})</b> ${empty?"Chưa điền.":good?"Khớp với gợi ý.":"Khác gợi ý, có thể vẫn đúng. Gợi ý: <span class='zh'>"+esc((Aw[n]||[])[0]||"")+"</span>"}</div>`); });
+    rows.push(`<div>${empty?"⬜":noAns?"✍️":good?"✅":"🟡"} <b>(${n})</b> ${empty?"Chưa điền.":noAns?"Đã điền. Bài này chưa có đáp án mẫu, hãy hỏi giáo viên hoặc đọc to cho bạn nghe.":good?"Khớp với gợi ý.":"Khác gợi ý, có thể vẫn đúng. Gợi ý: <span class='zh'>"+esc((Aw[n]||[])[0]||"")+"</span>"}</div>`); });
   box.querySelector(".gpr-res").innerHTML=`<div class="gpr-sum">${rows.join("")}<div class="muted" style="font-size:12.5px;margin-top:4px">Khớp ${ok}/${tot} câu. Đây là bài tự do nên nhiều cách trả lời đều đúng, hãy so với gợi ý.</div></div>`;
 }
 function rGram(el){
   const G=LS.grammar||[];
   if(!G.length){ el.innerHTML=`<div class="empty"><div class="ic">📐</div>Bài này chưa có phần ngữ pháp.</div>`; markDone(3); return; }
-  el.innerHTML=guide("Đọc giải thích, bấm 🔊 để nghe câu mẫu.")+G.map((g,i)=>`<div class="gp"><h3>${i+1}. ${esc(g.t)}</h3>${g.f?`<div class="formula zh">${esc(g.f)}</div>`:""}<div>${esc(g.d)}</div><div class="exs">${(g.ex||[]).map(e=>`<div><button class="btn sm" data-say="${esc(e[0])}">🔊</button><span class="zhs zh">${zhLine(tok(e[0]))}</span><span class="vi">${esc(e[1])}</span></div>`).join("")}</div>${g.pr&&g.pr.q?`<div class="gpr"><button class="gpr-h" data-gpr="${i}">✍️ Luyện tập <em>▸</em></button><div class="gpr-b hidden"><div class="gpr-q zh">${gprQ(g.pr.q,i)}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm p" data-gck="${i}">✔ Kiểm tra</button>${g.pr.a?`<button class="btn sm" data-gpa="${i}">💡 Xem gợi ý đáp án</button>`:""}</div><div class="gpr-res" id="gres${i}"></div>${g.pr.a?`<div class="gpr-a zh hidden">${esc(g.pr.a)}</div>`:""}</div></div>`:""}</div>`).join("");
+  el.innerHTML=guide("Đọc giải thích, bấm 🔊 để nghe câu mẫu.")+G.map((g,i)=>`<div class="gp"><h3>${i+1}. ${esc(g.t)}</h3>${g.f?`<div class="formula zh">${esc(g.f)}</div>`:""}<div class="gp-d">${esc(g.d)}</div><div class="exs">${(g.ex||[]).map(e=>`<div><button class="btn sm" data-say="${esc(e[0])}">🔊</button><span class="zhs zh">${zhLine(tok(e[0]))}</span><span class="vi">${esc(e[1])}</span></div>`).join("")}</div>${g.pr&&g.pr.q?`<div class="gpr"><button class="gpr-h" data-gpr="${i}">✍️ Luyện tập <em>▸</em></button><div class="gpr-b hidden"><div class="gpr-q zh">${gprQ(g.pr.q,i)}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm p" data-gck="${i}">✔ Kiểm tra</button>${g.pr.a?`<button class="btn sm" data-gpa="${i}">💡 Xem gợi ý đáp án</button>`:""}</div><div class="gpr-res" id="gres${i}"></div>${g.pr.a?`<div class="gpr-a zh hidden">${esc(g.pr.a)}</div>`:""}</div></div>`:""}</div>`).join("");
   el.querySelectorAll("[data-gpr]").forEach(b=>b.onclick=()=>{ const bd=b.nextElementSibling; const op=bd.classList.toggle("hidden"); b.querySelector("em").textContent=op?"▸":"▾"; });
   el.querySelectorAll("[data-gpa]").forEach(b=>b.onclick=()=>{ const a=b.closest(".gpr-b").querySelector(".gpr-a"); const sh=a.classList.toggle("hidden"); b.textContent=sh?"💡 Xem gợi ý đáp án":"🙈 Ẩn gợi ý"; });
   el.querySelectorAll("[data-gck]").forEach(b=>b.onclick=()=>gprCheck(G[+b.dataset.gck],+b.dataset.gck,b.closest(".gpr-b")));
@@ -2510,21 +2512,22 @@ function rQuiz(el){ el.innerHTML=guide("Chọn đáp án đúng. Kết quả hi�
 function rTest(el){ if(Array.isArray(LS.test)&&LS.test.some(x=>x&&(x.items||[]).length)){ rBookTest(el); return; } el.innerHTML=guide("Bài kiểm tra cuối bài, cần đúng từ 80% để hoàn thành."); mcq(el,genMCQ(6),12,true); }
 function rBookTest(el){
   const T=LS.test.filter(x=>x&&(x.items||[]).length); const ans={}; let done=false;
-  const blankHtml=(q,id)=>esc(q).replace(/_{3,}/,`<span class="tb-blank" data-bl="${id}">＿＿＿＿</span>`);
+  const blankHtml=(q,id,bi)=>{ let k=0; return esc(q).replace(/_{3,}/g,()=>(k++===(bi||0))?`<span class="tb-blank" data-bl="${id}">＿＿＿＿</span>`:`<span class="tb-other">＿＿</span>`); };
   const passageHtml=(t,si)=>esc(t).replace(/[（(](\d+)[)）]\s*_{3,}/g,(m,n)=>`<span class="tb-blank" data-bl="${si}-${+n-1}">（${n}）＿＿＿＿</span>`);
   el.innerHTML=guide("Bài tập tổng hợp của bài học. Làm hết rồi bấm <b>📤 Nộp bài</b>; cần đúng từ 80% phần chấm điểm để hoàn thành.")+T.map((S,si)=>`<div class="tb-sec"><h3>${esc(S.title||"")}</h3>
     ${S.type==="bank"?`<div class="tb-bank">${S.bank.map(b=>`<span><b>${esc(b.k)}</b> <span class="zh">${esc(b.w)}</span></span>`).join("")}</div>`:""}
     ${S.passage?`<div class="tb-pass zh">${passageHtml(S.passage,si)}</div>`:""}
     ${S.items.map((it,i)=>{ const id=si+"-"+i;
       if(S.type==="mcq") return `<div class="ex-item tb-it" data-id="${id}"><div><b>${i+1}.</b> <span class="zh">${esc(it.q)}</span></div><div class="opts">${it.o.map((o,k)=>`<button class="btn sm opt zh" data-q="${id}" data-k="${k}">${"ABCDEF"[k]}. ${esc(o)}</button>`).join("")}</div><div class="tb-ex hidden"></div></div>`;
-      if(S.type==="bank") return `<div class="ex-item tb-it" data-id="${id}">${S.passage?`<div><b>Chỗ trống ${esc(it.q)}</b></div>`:`<div class="zh tb-q"><b>${i+1}.</b> ${blankHtml(it.q,id)}</div>`}<div class="opts">${S.bank.map(b=>`<button class="btn sm opt" data-q="${id}" data-k="${esc(b.k)}">${esc(b.k)}${S.passage?"":` <span class="zh">${esc(b.w)}</span>`}</button>`).join("")}</div><div class="tb-ex hidden"></div></div>`;
-      return `<div class="ex-item tb-it"><div><b>${i+1}.</b> Từ: <b class="zh" style="font-size:19px">${esc(it.q)}</b></div><textarea class="zh tb-open" rows="2" placeholder="Đặt một câu với từ “${esc(it.q)}”…"></textarea>${it.a?`<button class="btn sm" data-hint>💡 Xem câu gợi ý</button><div class="tb-hint zh hidden">${esc(it.a)}</div>`:""}</div>`; }).join("")}</div>`).join("")+
+      if(S.type==="bank") return `<div class="ex-item tb-it" data-id="${id}">${S.passage?`<div><b>Chỗ trống ${esc(it.q)}</b></div>`:`<div class="zh tb-q"><b>${i+1}.</b> ${blankHtml(it.q,id,it.bi)}</div>`}<div class="opts">${S.bank.map(b=>`<button class="btn sm opt" data-q="${id}" data-k="${esc(b.k)}">${esc(b.k)}${S.passage?"":` <span class="zh">${esc(b.w)}</span>`}</button>`).join("")}</div><div class="tb-ex hidden"></div></div>`;
+      const isQ=/[？?]/.test(it.q)||[...it.q].length>6; return `<div class="ex-item tb-it">${isQ?`<div><b>${i+1}.</b> <span class="zh" style="font-size:18px">${esc(it.q)}</span> <button class="btn sm" data-sayq="${esc(it.q)}">🔊</button></div><textarea class="zh tb-open" rows="2" placeholder="Gõ câu trả lời bằng tiếng Trung…"></textarea>`:`<div><b>${i+1}.</b> Từ: <b class="zh" style="font-size:19px">${esc(it.q)}</b></div><textarea class="zh tb-open" rows="2" placeholder="Đặt một câu với từ “${esc(it.q)}”…"></textarea>`}${it.a?`<button class="btn sm" data-hint>💡 Xem gợi ý</button><div class="tb-hint zh hidden">${esc(it.a)}</div>`:""}</div>`; }).join("")}</div>`).join("")+
     `<button class="btn p" id="tbSub">📤 Nộp bài</button><div id="fb"></div>`;
   const item=id=>{ const [a,b]=id.split("-").map(Number); return [T[a],T[a].items[b]]; };
   el.querySelectorAll(".opt[data-q]").forEach(b=>b.onclick=()=>{ if(done) return; const id=b.dataset.q; ans[id]=b.dataset.k;
     el.querySelectorAll(`.opt[data-q="${id}"]`).forEach(x=>x.classList.toggle("on",x===b));
     const [S,it]=item(id); if(S.type==="bank"){ const w=(S.bank.find(x=>x.k===b.dataset.k)||{}).w||""; el.querySelectorAll(`[data-bl="${id}"]`).forEach(bl=>{ bl.textContent=(S.passage?`（${String(it.q).replace(/\D/g,"")}）`:"")+w; bl.classList.add("fill"); }); } });
-  el.querySelectorAll("[data-hint]").forEach(b=>b.onclick=()=>{ const h=b.nextElementSibling; const sh=h.classList.toggle("hidden"); b.textContent=sh?"💡 Xem câu gợi ý":"🙈 Ẩn gợi ý"; });
+  el.querySelectorAll("[data-sayq]").forEach(b=>b.onclick=()=>say(b.dataset.sayq,.85));
+  el.querySelectorAll("[data-hint]").forEach(b=>b.onclick=()=>{ const h=b.nextElementSibling; const sh=h.classList.toggle("hidden"); b.textContent=sh?"💡 Xem gợi ý":"🙈 Ẩn gợi ý"; });
   $("#tbSub").onclick=()=>{
     const ids=[]; T.forEach((S,si)=>{ if(S.type!=="open") S.items.forEach((_,i)=>ids.push(si+"-"+i)); });
     if(!done&&ids.some(id=>ans[id]===undefined)&&!confirm("Còn câu chưa làm. Vẫn nộp bài?")) return;
@@ -2535,7 +2538,7 @@ function rBookTest(el){
       const ex=el.querySelector(`.tb-it[data-id="${id}"] .tb-ex`); const rw=S.type==="bank"?right+" "+((S.bank.find(x=>x.k===right)||{}).w||""):"ABCDEF"[+right]+". "+((it.o||[])[+right]||""); const txt=good?(it.ex?"✅ "+it.ex:""):"❌ Đáp án: "+rw+(it.ex?" · "+it.ex:""); if(ex&&txt){ ex.textContent=txt; ex.classList.remove("hidden"); } });
     el.querySelectorAll(".tb-hint").forEach(h=>h.classList.remove("hidden")); el.querySelectorAll("[data-hint]").forEach(b=>b.classList.add("hidden"));
     const pct=ids.length?Math.round(ok/ids.length*100):100;
-    $("#fb").innerHTML=`<div class="fb ${pct>=80?"ok":"no"}" style="text-align:center;font-size:18px">${pct>=80?"🏆":"💪"} Điểm: ${ok}/${ids.length} (${pct}%)<br><span style="font-size:14px;font-weight:500">${pct>=80?"Bạn đã hoàn thành bài học!":"Cần đạt 80% để hoàn thành bài. Ôn lại rồi làm lại nhé."} Phần đặt câu không chấm điểm, hãy so với câu gợi ý.</span><br><button class="btn sm" id="redo" style="margin-top:8px">↺ Làm lại</button></div>`;
+    $("#fb").innerHTML=`<div class="fb ${pct>=80?"ok":"no"}" style="text-align:center;font-size:18px">${pct>=80?"🏆":"💪"} Điểm: ${ok}/${ids.length} (${pct}%)<br><span style="font-size:14px;font-weight:500">${pct>=80?"Bạn đã hoàn thành bài học!":"Cần đạt 80% để hoàn thành bài. Ôn lại rồi làm lại nhé."} Phần tự viết không chấm điểm, hãy so với câu gợi ý.</span><br><button class="btn sm" id="redo" style="margin-top:8px">↺ Làm lại</button></div>`;
     $("#redo").onclick=()=>go(cur); if(pct>=80) markDone(12); $("#tbSub").disabled=true; $("#fb").scrollIntoView({behavior:"smooth",block:"center"}); };
 }
 /* 11. Luyện nói */
@@ -4650,8 +4653,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
