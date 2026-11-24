@@ -843,6 +843,13 @@ body.guest #accName:before{font-size:13px}
 .lrow.cmp{padding:5px 8px;margin-bottom:4px;border-width:1px;border-radius:10px;gap:8px;flex-wrap:nowrap}.lrow.cmp .n{width:26px;height:26px;font-size:12px;flex-shrink:0}.lrow.cmp .tt{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}.lrow.cmp .tt .muted{font-size:12.5px}.lrow.cmp .lmeta{font-size:12px;white-space:nowrap}.lrow.cmp .tag{font-size:11px;padding:1px 7px}
 .lacts{display:flex;gap:4px;flex-shrink:0}.ib{border:1px solid var(--line);background:#fff;border-radius:8px;width:30px;height:28px;padding:0;font-size:13px}.ib.red{border-color:#f3c2cc}
 @media(max-width:640px){.lrow.cmp .lmeta,.lrow.cmp .tt .muted{display:none}}
+.yd-bar2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin:-4px 0 8px}.yd-bar2 .btn.on{background:var(--p-softer,#eef5fc)}
+.yd-nopy rt{display:none}.yd-sh{display:flex;align-items:center;justify-content:center;gap:8px;position:relative}.yd-tg{border:1px solid var(--line);background:#fff;border-radius:8px;width:28px;height:28px;padding:0;font-size:14px;color:var(--p-dark);flex-shrink:0}
+.yd-sec.shut .yd-secb{display:none}.yd-sec.shut .yd-sh{background:var(--p-softer,#eef5fc)}.yd-cnt{font-size:12px}
+.yd-vh{cursor:pointer;user-select:none}.yd-voc2{display:flex;flex-direction:column;gap:4px}.yd-v2{border:1px solid var(--line);border-radius:10px;background:#fff}.yd-v2.op{border-color:var(--p)}
+.yd-vrow{display:flex;align-items:baseline;gap:10px;width:100%;border:none;background:none;padding:7px 10px;text-align:left}.yd-vrow .arr{color:var(--p-dark);width:12px;flex-shrink:0}.yd-vrow .zh{font-size:18px;flex-shrink:0}.yd-vrow .vpy{color:var(--p-dark);font-weight:600;flex-shrink:0}.yd-vrow .vvi{color:#40546b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.yd-vd{padding:0 12px 10px 32px}
+.yd-wrap{position:relative}.yd-wrap .yd-card{width:100%}.yd-adm{position:absolute;top:10px;right:10px;display:flex;gap:4px}.yd-wrap:has(.yd-adm) .yd-card{padding-right:86px}
 </style>
 </head>
 <body>
@@ -1046,7 +1053,7 @@ let ROLES={}, IS_OWNER=false;
 let DB=null, ASSETS=null, DL=null, USER=null, ME=null, UID=null, IS_ADMIN=false, STUDENT_VIEW=false;
 let DOCS=[], LESSONS_DB=[], LVSTATE={}, LEARNERS=[], ROSTER={};
 let MY_ACCESS={}, ACCESS_ALL={}, ACCESS_LOADED=false;
-let PROFILE=null, STORIES_DB=[], storiesState="loading", VIDEOS_DB=[], videosState="loading";
+let PROFILE=null, STORIES_DB=[], storiesState="loading", VIDEOS_DB=[], videosState="loading", YEDU_DB=[];
 let docsState="loading", lessonsState="loading";
 
 const ROLE_NAME={admin:"Quản trị viên",teacher:"Giáo viên",student:"Học viên"};
@@ -1100,6 +1107,7 @@ async function initCaps(){
   DB.collection("stories").onSnapshot(s=>{ STORIES_DB=s.docs.map(d=>Object.assign({id:d.id},d.data())); storiesState="ok"; renderAll(); if(curView()==="story"&&!STORY) route(); }, ()=>{ storiesState="err"; });
   if(UID&&UID!=="local"){ DB.doc("access/"+UID).onSnapshot(s=>{ MY_ACCESS=s.exists?(s.data()||{}):{}; ACCESS_LOADED=true; renderAll(); if(curView()==="course") renderCourse(); }, ()=>{ ACCESS_LOADED=true; renderAll(); }); } else ACCESS_LOADED=true;
   if(canManage()) DB.collection("access").onSnapshot(s=>{ ACCESS_ALL={}; s.docs.forEach(d=>ACCESS_ALL[d.id]=d.data()); if(curView()==="admin") renderAdmin(); }, ()=>{});
+  DB.collection("yedu").onSnapshot(s=>{ YEDU_DB=s.docs.map(d=>Object.assign({id:d.id},d.data())); if(curView()==="yedu"&&YD.i<0) renderYedu(); }, ()=>{});
   DB.collection("videos").onSnapshot(s=>{ VIDEOS_DB=s.docs.map(d=>Object.assign({id:d.id},d.data())); videosState="ok"; renderAll(); if(curView()==="admin"&&admTab==="videos") renderAdmin(); }, ()=>{ videosState="err"; renderAll(); });
   DB.doc("site/profile").onSnapshot(s=>{ PROFILE=s.exists?s.data():null; renderAll(); }, ()=>{});
   DB.collection("roles").onSnapshot(s=>{ ROLES={}; s.docs.forEach(d=>ROLES[d.id]=d.data()); renderAll(); }, ()=>{});
@@ -3799,18 +3807,25 @@ function renderChuhan(){
 }
 
 /* ---------- Trang Đọc sách ban đêm ---------- */
-const YD={i:-1,p:0,playing:false,loop:false,shuffle:false,rec:null,url:"",chunks:[],stream:null,tok:0};
+function ydAll(){ return [...YEDU_DB.filter(x=>x&&x.title&&Array.isArray(x.blocks)&&(x.status!=="draft"||canTeach())).sort((a,b)=>(a.order||99)-(b.order||99)||(b.createdAt||0)-(a.createdAt||0)), ...YEDU]; }
+const YD={i:-1,p:0,playing:false,loop:false,shuffle:false,rec:null,url:"",chunks:[],stream:null,tok:0,closed:new Set(),vocOpen:false,vOpen:new Set(),nopy:false};
+function ydSecs(B){ const out=[]; let cur={h:null,items:[]}; B.forEach((b,i)=>{ if(b.type==="h2"){ if(cur.h!=null||cur.items.length) out.push(cur); cur={h:i,items:[]}; } else cur.items.push(i); }); if(cur.h!=null||cur.items.length) out.push(cur); return out; }
+function ydKeep(fn){ const y=window.scrollY; fn(); window.scrollTo(0,y); }
 function ydLex(a){ LEX=Object.assign({},BASE_DICT); (a.vocab||[]).forEach(v=>{ if(v[0]) LEX[v[0]]=[v[1],v[4]]; }); }
 function stopYedu(){ YD.playing=false; YD.tok++; try{ speechSynthesis.cancel(); }catch(e){} }
 function renderYedu(){
   CUR_LANG="zh"; const root=$("#yeduBody");
-  if(YD.i<0||!YEDU[YD.i]){
+  if(YD.i<0||!ydAll()[YD.i]){
     root.innerHTML=`<div class="pg-h"><h1>🌙 Đọc sách ban đêm <span class="tagzh zh">夜读</span></h1><p class="muted">Đọc mẫu, ghi âm, pinyin đầy đủ và từ vựng chú giải, dùng chung cho mọi cấp HSK.</p></div>
-    <div class="yd-list">${YEDU.map((a,i)=>`<button class="yd-card" data-yi="${i}"><div class="yd-n">${String(i+1).padStart(2,"0")}</div><div><div class="zh yd-t">${esc(a.title)}</div><div class="muted" style="font-size:12.5px">${a.blocks.filter(b=>b.type==="p"||b.type==="poem").length} đoạn · ${(a.vocab||[]).length} từ chú giải</div></div></button>`).join("")}</div>`;
-    root.querySelectorAll("[data-yi]").forEach(b=>b.onclick=()=>{ YD.i=+b.dataset.yi; YD.p=0; stopYedu(); ydRecClear(); renderYedu(); window.scrollTo(0,0); });
+    ${canTeach()?`<div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn p" id="ydAdd">＋ Thêm tài liệu đọc</button></div>`:""}
+    <div class="yd-list">${ydAll().map((a,i)=>`<div class="yd-wrap"><button class="yd-card" data-yi="${i}"><div class="yd-n">${String(i+1).padStart(2,"0")}</div><div><div class="zh yd-t">${esc(a.title)}</div><div class="muted" style="font-size:12.5px">${a.blocks.filter(b=>b.type==="p"||b.type==="poem").length} đoạn · ${(a.vocab||[]).length} từ chú giải${a.status==="draft"?" · 📝 Nháp (học viên chưa thấy)":""}</div></div></button>${a.id&&canTeach()?`<div class="yd-adm"><button class="ib" title="Sửa" data-yed="${esc(a.id)}">✏️</button><button class="ib red" title="Xóa" data-ydel="${esc(a.id)}">🗑</button></div>`:""}</div>`).join("")}</div>`;
+    const ad=root.querySelector("#ydAdd"); if(ad) ad.onclick=()=>openYeduComposer(null);
+    root.querySelectorAll("[data-yed]").forEach(b=>b.onclick=()=>openYeduComposer(YEDU_DB.find(x=>x.id===b.dataset.yed)));
+    root.querySelectorAll("[data-ydel]").forEach(b=>b.onclick=()=>{ const it=YEDU_DB.find(x=>x.id===b.dataset.ydel); if(!it) return; confirmBox("Xóa tài liệu?",`Bài <b class="zh">${esc(it.title)}</b> sẽ bị xóa vĩnh viễn.`,"Xóa",async()=>{ try{ await DB.doc("yedu/"+it.id).delete(); toast("Đã xóa"); }catch(e){ toast("Không xóa được"); } }); });
+    root.querySelectorAll("[data-yi]").forEach(b=>b.onclick=()=>{ YD.i=+b.dataset.yi; YD.p=0; YD.closed=new Set(); YD.vOpen=new Set(); YD.vocOpen=false; stopYedu(); ydRecClear(); renderYedu(); window.scrollTo(0,0); });
     return;
   }
-  const a=YEDU[YD.i]; ydLex(a); const B=a.blocks; const n=B.length;
+  const a=ydAll()[YD.i]; ydLex(a); const B=a.blocks; const n=B.length;
   const tpy=(()=>{ try{ return pinyinPro.pinyin(a.title); }catch(e){ return ""; } })();
   root.innerHTML=`<button class="btn sm" id="ydBack">← Danh sách bài</button>
   <div class="yd-player"><div class="zh yd-title">${esc(a.title)}</div><div class="yd-tpy">${esc(tpy)}</div>
@@ -3819,11 +3834,16 @@ function renderYedu(){
     <div class="yd-ctl2">${rateSel("ydRate")}<button class="btn sm" id="ydRec">🎙 Ghi âm giọng tôi</button></div>
     <div id="ydMine" class="${YD.url?"":"hidden"}" style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:10px"><audio controls id="ydAud" ${YD.url?`src="${YD.url}"`:""}></audio><button class="btn sm" id="ydRecDel">🗑</button></div>
   </div>
-  <div class="card yd-text">${B.map((b,i)=>b.type==="h2"||b.type==="h3"?`<div class="yd-b yd-${b.type}" data-yb="${i}" data-zh="${esc(b.text)}"><div class="zh">${zhLine(tok(b.text,"zh"))}</div></div>`
-      :`<div class="yd-b yd-p ${b.type==="poem"?"yd-poem":""}" data-yb="${i}" data-zh="${esc(b.text)}">${b.text.split("\n").map(t=>`<div class="zh">${zhLine(tok(t,"zh"))}</div>`).join("")}</div>`).join("")}</div>
-  ${(a.vocab||[]).length?`<div class="card pa-sec"><h2>📒 Từ vựng chú giải (${a.vocab.length})</h2><div class="yd-voc">${a.vocab.map((v,k)=>`<div class="yd-v"><div><b class="zh" style="font-size:20px">${esc(v[0])}</b> <span style="color:var(--p-dark);font-weight:600">${esc(v[1])}</span> ${v[2]?`<span class="muted">· ${esc(v[2])}</span>`:""} ${v[3]?`<span class="badge2">${esc(v[3])}</span>`:""}</div><div>${esc(v[4]||"")}</div>
+  <div class="yd-bar2"><button class="btn sm" id="ydAllOpen">⊞ Mở rộng tất cả</button><button class="btn sm" id="ydAllClose">⊟ Thu gọn tất cả</button><button class="btn sm ${YD.nopy?"":"on"}" id="ydPy">${YD.nopy?"Hiện pinyin":"Ẩn pinyin"}</button></div>
+  <div class="card yd-text ${YD.nopy?"yd-nopy":""}">${ydSecs(B).map((sec,k)=>{ const shut=YD.closed.has(k); const head=sec.h!=null?B[sec.h]:null;
+      return `<div class="yd-sec ${shut?"shut":""}" data-sec="${k}">${head?`<div class="yd-b yd-${head.type} yd-sh" data-yb="${sec.h}" data-zh="${esc(head.text)}"><button class="yd-tg" data-tg="${k}" title="${shut?"Mở rộng":"Thu gọn"}">${shut?"▸":"▾"}</button><div class="zh">${zhLine(tok(head.text,"zh"))}</div>${shut?`<span class="muted yd-cnt">${sec.items.length} đoạn</span>`:""}</div>`:""}
+      <div class="yd-secb">${sec.items.map(i=>{ const b=B[i]; return b.type==="h3"?`<div class="yd-b yd-h3" data-yb="${i}" data-zh="${esc(b.text)}"><div class="zh">${zhLine(tok(b.text,"zh"))}</div></div>`
+      :`<div class="yd-b yd-p ${b.type==="poem"?"yd-poem":""}" data-yb="${i}" data-zh="${esc(b.text)}">${b.text.split("\n").map(t=>`<div class="zh">${zhLine(tok(t,"zh"))}</div>`).join("")}</div>`; }).join("")}</div></div>`; }).join("")}</div>
+  ${(a.vocab||[]).length?`<div class="card pa-sec"><div class="sec-h"><h2 class="yd-vh" id="ydVocH">${YD.vocOpen?"▾":"▸"} 📒 Từ vựng chú giải (${a.vocab.length})</h2>${YD.vocOpen?`<div style="display:flex;gap:6px"><button class="btn sm" id="ydVAll">⊞ Mở hết chi tiết</button><button class="btn sm" id="ydVNone">⊟ Thu hết</button></div>`:""}</div>
+    ${YD.vocOpen?`<div class="yd-voc2">${a.vocab.map((v,k)=>{ const op=YD.vOpen.has(k); return `<div class="yd-v2 ${op?"op":""}"><button class="yd-vrow" data-vt="${k}"><span class="arr">${op?"▾":"▸"}</span><b class="zh">${esc(v[0])}</b><span class="vpy">${esc(v[1])}</span><span class="vvi">${esc(v[4]||"")}</span></button>
+      ${op?`<div class="yd-vd">${v[2]||v[3]?`<div class="muted" style="font-size:13px">${v[2]?esc(v[2]):""} ${v[3]?`<span class="badge2">${esc(v[3])}</span>`:""}</div>`:""}
       ${[[6,8],[9,11]].filter(([z])=>v[z]).map(([z,t])=>`<div class="yd-ex"><span class="zh">${esc(v[z])}</span>${v[t]?` <span class="muted">– ${esc(v[t])}</span>`:""}</div>`).join("")}
-      <div style="display:flex;gap:6px;margin-top:6px"><button class="btn sm" data-vs="${k}">🔊</button><button class="btn sm" data-vw="${k}">✍️ Nét viết</button><button class="btn sm dark" data-vb="${k}">${bookHas(v[0])?"✓ Đã lưu":"➕ Sổ từ"}</button></div></div>`).join("")}</div></div>`:""}`;
+      <div style="display:flex;gap:6px;margin-top:6px"><button class="btn sm" data-vs="${k}">🔊</button><button class="btn sm" data-vw="${k}">✍️ Nét viết</button><button class="btn sm dark" data-vb="${k}">${bookHas(v[0])?"✓ Đã lưu":"➕ Sổ từ"}</button></div></div>`:""}</div>`; }).join("")}</div>`:`<div class="muted" style="font-size:13px">Bấm tiêu đề để mở danh sách từ.</div>`}</div>`:""}`;
   const R2=s=>root.querySelector(s);
   bindRate(root,"ydRate");
   R2("#ydBack").onclick=()=>{ stopYedu(); YD.i=-1; renderYedu(); };
@@ -3833,7 +3853,16 @@ function renderYedu(){
   R2("#ydLoop").onclick=()=>{ YD.loop=!YD.loop; ydUi(); };
   R2("#ydShuf").onclick=()=>{ YD.shuffle=!YD.shuffle; ydUi(); };
   R2("#ydBar").onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); const p=Math.max(0,Math.min(n-1,Math.floor((e.clientX-r.left)/r.width*n))); YD.playing?ydPlay(p):(YD.p=p,ydUi()); };
-  root.querySelectorAll("[data-yb]").forEach(el=>el.onclick=e=>{ if(e.target.closest(".w")) return; ydPlay(+el.dataset.yb); });
+  root.querySelectorAll("[data-yb]").forEach(el=>el.onclick=e=>{ if(e.target.closest(".w")||e.target.closest(".yd-tg")) return; ydPlay(+el.dataset.yb); });
+  const secs=ydSecs(B);
+  root.querySelectorAll("[data-tg]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const k=+b.dataset.tg; YD.closed.has(k)?YD.closed.delete(k):YD.closed.add(k); ydKeep(renderYedu); });
+  R2("#ydAllOpen").onclick=()=>{ YD.closed.clear(); ydKeep(renderYedu); };
+  R2("#ydAllClose").onclick=()=>{ secs.forEach((x,k)=>{ if(x.h!=null) YD.closed.add(k); }); ydKeep(renderYedu); };
+  R2("#ydPy").onclick=()=>{ YD.nopy=!YD.nopy; ydKeep(renderYedu); };
+  const vh=R2("#ydVocH"); if(vh) vh.onclick=()=>{ YD.vocOpen=!YD.vocOpen; ydKeep(renderYedu); };
+  root.querySelectorAll("[data-vt]").forEach(b=>b.onclick=()=>{ const k=+b.dataset.vt; YD.vOpen.has(k)?YD.vOpen.delete(k):YD.vOpen.add(k); ydKeep(renderYedu); });
+  const va=R2("#ydVAll"); if(va) va.onclick=()=>{ a.vocab.forEach((_,k)=>YD.vOpen.add(k)); ydKeep(renderYedu); };
+  const vn=R2("#ydVNone"); if(vn) vn.onclick=()=>{ YD.vOpen.clear(); ydKeep(renderYedu); };
   R2("#ydRec").onclick=()=>YD.rec?ydRecStop():ydRecStart();
   R2("#ydRecDel").onclick=()=>{ ydRecClear(); R2("#ydMine").classList.add("hidden"); };
   root.querySelectorAll("[data-vs]").forEach(b=>b.onclick=()=>paSay(a.vocab[+b.dataset.vs][0]));
@@ -3842,14 +3871,15 @@ function renderYedu(){
   ydUi();
 }
 function ydUi(){
-  const a=YEDU[YD.i]; if(!a) return; const n=a.blocks.length; const pct=n>1?YD.p/(n-1)*100:0;
+  const a=ydAll()[YD.i]; if(!a) return; const n=a.blocks.length; const pct=n>1?YD.p/(n-1)*100:0;
   const f=$("#ydFill"), d=$("#ydDot"), t=$("#ydTime"); if(f) f.style.width=pct+"%"; if(d) d.style.left=pct+"%"; if(t) t.textContent=`Đoạn ${YD.p+1} / ${n}`;
   const pb=$("#ydPlay"); if(pb) pb.textContent=YD.playing?"⏸":"▶";
   const lp=$("#ydLoop"), sh=$("#ydShuf"); if(lp) lp.classList.toggle("on",YD.loop); if(sh) sh.classList.toggle("on",YD.shuffle);
   document.querySelectorAll(".yd-b").forEach(el=>el.classList.toggle("cur",+el.dataset.yb===YD.p&&YD.playing));
 }
 function ydPlay(p){
-  const a=YEDU[YD.i]; if(!a) return; const n=a.blocks.length; YD.tok++; const my=YD.tok; YD.p=p; YD.playing=true; ydUi();
+  const a=ydAll()[YD.i]; if(!a) return; const n=a.blocks.length; YD.tok++; const my=YD.tok; YD.p=p; YD.playing=true; ydUi();
+  { const k=ydSecs(a.blocks).findIndex(x=>x.h===p||x.items.includes(p)); if(k>=0&&YD.closed.has(k)&&!(ydSecs(a.blocks)[k].h===p)){ YD.closed.delete(k); const se=document.querySelector(`.yd-sec[data-sec="${k}"]`); if(se){ se.classList.remove("shut"); const t=se.querySelector(".yd-tg"); if(t) t.textContent="▾"; const c=se.querySelector(".yd-cnt"); if(c) c.remove(); } } }
   const el=document.querySelector(`.yd-b[data-yb="${p}"]`); if(el) el.scrollIntoView({behavior:"smooth",block:"center"});
   CUR_LANG="zh"; try{ speechSynthesis.cancel(); }catch(e){}
   const txt=a.blocks[p].text.replace(/\n/g,"，");
@@ -3868,6 +3898,44 @@ async function ydRecStart(){
 }
 function ydRecStop(){ try{ if(YD.rec&&YD.rec.state==="recording") YD.rec.stop(); }catch(e){} }
 function ydRecClear(){ ydRecStop(); if(YD.url) URL.revokeObjectURL(YD.url); YD.url=""; }
+
+function ydTextToBlocks(t){ const out=[]; String(t).replace(/\r/g,"").split(/\n\s*\n/).forEach(ch=>{ const L=ch.split("\n").map(x=>x.trim()).filter(Boolean); if(!L.length) return;
+    if(L.every(x=>x.startsWith(">"))){ out.push({type:"poem",text:L.map(x=>x.replace(/^>\s*/,"")).join("\n")}); return; }
+    let buf=[]; const flush=()=>{ if(buf.length){ out.push({type:"p",text:buf.join("")}); buf=[]; } };
+    L.forEach(x=>{ const h=x.match(/^(#{2,3})\s*(.+)$/); if(h){ flush(); out.push({type:h[1].length===2?"h2":"h3",text:h[2].trim()}); } else buf.push(x.replace(/^>\s*/,"")); }); flush(); });
+  return out; }
+function ydBlocksToText(B){ return (B||[]).map(b=>b.type==="h2"?"## "+b.text:b.type==="h3"?"### "+b.text:b.type==="poem"?b.text.split("\n").map(x=>"> "+x).join("\n"):b.text).join("\n\n"); }
+function ydVocToText(V){ return (V||[]).map(v=>[v[0],v[1],v[2],v[3],v[4],v[6],v[8]].map(x=>x||"").join(" | ").replace(/( \| )+$/,"")).join("\n"); }
+function ydTextToVoc(t){ return String(t).split("\n").map(l=>l.split("|").map(x=>x.trim())).filter(a=>a[0]&&hasHan(a[0])).map(a=>[a[0],a[1]||autoPy(a[0],"zh"),a[2]||"",a[3]||"",a[4]||"","",a[5]||"","",a[6]||"","","",""]).slice(0,150); }
+function openYeduComposer(E){
+  const m=modal(`<h3>${E?"✏️ Sửa":"＋ Thêm"} tài liệu Đọc sách ban đêm<button class="x" data-close>×</button></h3>
+    <div class="fld"><label>Tiêu đề (chữ Hán)</label><input type="text" id="ycT" class="zh" maxlength="120" value="${esc(E?E.title:"")}"></div>
+    <div class="drop" id="ycDrop" style="margin:4px 0 12px"><div style="font-size:24px">📄</div><b id="ycDropT">Tải file lên để tự điền nội dung: kéo thả hoặc bấm để chọn</b><div class="muted" style="font-size:12px">TXT, Word (.docx), PDF (cả bản scan) hoặc ảnh chụp trang sách</div><input type="file" id="ycFile" hidden accept=".txt,.md,.docx,.pdf,.jpg,.jpeg,.png,.webp"></div>
+    <div class="fld"><label>Nội dung</label><textarea id="ycB" class="zh" style="min-height:240px" placeholder="Mỗi đoạn cách nhau 1 dòng trống.&#10;## Tiêu đề lớn (thu gọn/mở rộng được)&#10;### Tiêu đề nhỏ&#10;> Dòng thơ (mỗi dòng bắt đầu bằng >)">${esc(E?ydBlocksToText(E.blocks):"")}</textarea></div>
+    <div class="fld"><label>Từ vựng chú giải (không bắt buộc)</label><textarea id="ycV" style="min-height:120px" placeholder="Mỗi dòng 1 từ: 词 | pinyin | Hán Việt | từ loại | nghĩa | câu ví dụ | dịch ví dụ&#10;VD: 拖延 | tuōyán | Đà duyên | Động từ | trì hoãn | 别拖延时间。 | Đừng trì hoãn thời gian.&#10;Thiếu pinyin web tự thêm.">${esc(E?ydVocToText(E.vocab):"")}</textarea></div>
+    <div class="row2"><div class="fld"><label>Trạng thái</label><select id="ycS"><option value="pub" ${!E||E.status!=="draft"?"selected":""}>Đăng cho học viên</option><option value="draft" ${E&&E.status==="draft"?"selected":""}>Nháp (chỉ giáo viên thấy)</option></select></div><div class="fld"><label>Thứ tự (số nhỏ lên trước)</label><input type="number" id="ycO" min="1" max="999" value="${E&&E.order?E.order:""}" placeholder="để trống = mới nhất lên đầu"></div></div>
+    <div id="ycMsg"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" id="ycPrev">👁 Xem thử</button><button class="btn" data-close>Hủy</button><button class="btn p" id="ycSave">Lưu</button></div>`,true);
+  const err=t=>m.querySelector("#ycMsg").innerHTML=t?`<div class="err">${esc(t)}</div>`:"";
+  const drop=m.querySelector("#ycDrop"), fin=m.querySelector("#ycFile"), T=m.querySelector("#ycDropT");
+  const handle=async f=>{ err(""); T.textContent="⏳ Đang đọc "+f.name+"…";
+    try{ const raw=await fileToText(f,"zh",t=>{ T.textContent="⏳ "+t; },{raw:true}); const lines=String(raw).replace(/§PAGE§/g,"").replace(/\r/g,"").split("\n").map(x=>x.trim());
+      const txt=lines.join("\n").replace(/\n{3,}/g,"\n\n").trim(); if(!txt){ T.textContent="Kéo thả hoặc bấm để chọn file khác"; err("Không đọc được chữ trong file."); return; }
+      const ta=m.querySelector("#ycB"); ta.value=ta.value.trim()?ta.value.trim()+"\n\n"+txt:txt;
+      if(!m.querySelector("#ycT").value.trim()){ const first=lines.find(x=>hasHan(x)&&[...x].length<=40); if(first) m.querySelector("#ycT").value=first; }
+      T.innerHTML=`✅ Đã đọc <b>${esc(f.name)}</b>. Kiểm tra lại, thêm <code>##</code> trước các tiêu đề rồi bấm Lưu.${fileToText.ocr?" (Bản scan có thể đọc nhầm vài chữ.)":""}`; }
+    catch(e){ T.textContent="Kéo thả hoặc bấm để chọn file khác"; err(e&&e.msg?e.msg:"Không đọc được file này."); } };
+  drop.onclick=()=>fin.click(); fin.onchange=()=>{ if(fin.files[0]) handle(fin.files[0]); fin.value=""; };
+  drop.ondragover=e=>{ e.preventDefault(); drop.classList.add("over"); }; drop.ondragleave=()=>drop.classList.remove("over");
+  drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove("over"); const f=e.dataTransfer.files[0]; if(f) handle(f); };
+  const read=()=>({title:m.querySelector("#ycT").value.trim().slice(0,120),blocks:ydTextToBlocks(m.querySelector("#ycB").value).slice(0,400),vocab:ydTextToVoc(m.querySelector("#ycV").value),status:m.querySelector("#ycS").value,order:parseInt(m.querySelector("#ycO").value)||0,updatedAt:Date.now()});
+  const check=d=>!d.title?"Hãy nhập tiêu đề.":!d.blocks.some(b=>b.type==="p"||b.type==="poem")?"Hãy nhập ít nhất một đoạn nội dung.":JSON.stringify(d).length>900000?"Bài quá dài, hãy chia thành nhiều bài.":"";
+  m.querySelector("#ycPrev").onclick=()=>{ const d=read(); const e=check(d); if(e){ err(e); return; } err(""); m.querySelector("#ycMsg").innerHTML=`<div class="note">Bài có ${d.blocks.filter(b=>b.type==="h2").length} tiêu đề lớn · ${d.blocks.filter(b=>b.type==="h3").length} tiêu đề nhỏ · ${d.blocks.filter(b=>b.type==="p"||b.type==="poem").length} đoạn · ${d.vocab.length} từ chú giải.</div>`; };
+  m.querySelector("#ycSave").onclick=async()=>{ const d=read(); const e=check(d); if(e){ err(e); return; } const b=m.querySelector("#ycSave"); b.disabled=true; b.textContent="Đang lưu…";
+    try{ if(E) await DB.doc("yedu/"+E.id).set(Object.assign({},d,{createdAt:E.createdAt||Date.now()})); else await DB.collection("yedu").add(Object.assign(d,{createdAt:Date.now()}));
+      closeModal(); toast(d.status==="pub"?"✅ Đã lưu và đăng bài":"✅ Đã lưu bản nháp"); YD.i=-1; renderYedu(); }
+    catch(x){ b.disabled=false; b.textContent="Lưu"; err((typeof dbErrMsg==="function"&&dbErrMsg(x))||"Không lưu được. Hãy thử lại."); } };
+}
 function renderWriting(root,opts){
   if(root){ TV.root=root; TV.opts=opts||{}; }
   const EMB=!!TV.opts.embedded;
@@ -4266,8 +4334,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
