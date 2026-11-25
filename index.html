@@ -2109,6 +2109,9 @@ async function importTextbook(files, level, opt){ opt=opt||{};
   for(const f of files){
     if(extOf(f.name)==="json"){ try{ let arr=JSON.parse(await f.text()); if(!Array.isArray(arr)) arr=arr.lessons||[arr]; let n=0;
         for(const x of arr){ if(!x||!x.zh||!Array.isArray(x.vocab)||!Array.isArray(x.dialogue)) continue; const d=Object.assign({},x); const id=String(d.id||"").replace(/[^\w-]/g,"").slice(0,60); delete d.id; d.level=LEVELS.some(l=>l.id===d.level)?d.level:level; d.updatedAt=Date.now(); jsonLv.add(d.level);
+          const rp=Array.isArray(d.replace)?d.replace.filter(k=>typeof k==="string"):null; delete d.replace; delete d.dialogueFallback; delete d.kaiwaVi;
+          if(rp){ const old=lessonsOf(d.level,true).find(o=>!o.builtin&&+o.order===+d.order);
+            if(old){ const doc=Object.assign({},old); delete doc.id; delete doc.builtin; rp.forEach(k=>{ if(d[k]!==undefined) doc[k]=d[k]; }); doc.updatedAt=Date.now(); await DB.doc("lessons/"+old.id).set(doc); merged.push(+d.order); n++; made++; continue; } }
           if(id) await DB.doc("lessons/"+id).set(d); else await DB.collection("lessons").add(d); n++; made++; }
         if(!n) throw {msg:"File JSON không có bài học hợp lệ."};
         for(const lv of new Set(arr.map(x=>x&&x.level).filter(v=>LEVELS.some(l=>l.id===v)))){ if(!isOpen(lv)){ try{ await DB.doc("levels/"+lv).set({open:true}); }catch(e){} } } }catch(x){ bad.push([f.name,(x&&x.msg)||dbErrMsg(x)]); } continue; }
@@ -2339,7 +2342,7 @@ function rVocab(el){
 }
 function sentPy(zhText){ return tok(zhText).map(t=>isWordy(t)?pyOf(t):t).join(" ").replace(/\s+([，。！？、,.!?])/g,"$1").replace(/\s+/g," ").trim(); }
 function wordExamples(v){
-  const out=[]; if(v.ex) out.push([v.ex,v.exVi||""]);
+  const out=[]; if(v.ex) out.push([v.ex,v.exVi||""]); if(v.ex2) out.push([v.ex2,v.ex2Vi||""]);
   DLG().forEach(d=>{ if(out.length<3&&d.zh.includes(v.w)&&!out.some(o=>o[0]===d.zh)) out.push([d.zh,d.vi]); });
   (LS.grammar||[]).forEach(g=>(g.ex||[]).forEach(e=>{ if(out.length<3&&e[0].includes(v.w)&&!out.some(o=>o[0]===e[0])) out.push(e); }));
   return out;
@@ -2350,7 +2353,7 @@ function wordCard(i){
       <div class="wc-word zh"></div>
       <div class="wc-btns">${zh?`<button class="btn wc-o" id="wcDeepB">🔍 Học sâu</button><button class="btn wc-o" id="wcStroke">✍️ Nét viết</button>`:""}<button class="btn wc-f" id="wcSay">🔊 Đọc mẫu</button></div></div>
     <div class="wc-body">
-      <div class="wc-py"></div><div class="wc-vi"></div>${v.hv?`<div class="muted" style="font-size:14px">Âm Hán Việt: <span id="wcHv"></span></div>`:""}${v.tp?`<div class="muted" style="font-size:13px">${esc(v.tp)}</div>`:""}
+      <div class="wc-py"></div><div class="wc-vi"></div>${v.hv?`<div class="muted" style="font-size:14px">Âm Hán Việt: <span id="wcHv"></span></div>`:""}${v.tp?`<div class="muted" style="font-size:13px">${esc(v.tp)}</div>`:""}${v.note?`<div class="note" style="font-size:13px;margin:8px 0;text-align:left">💡 ${esc(v.note)}</div>`:""}
       <div id="wcStudy" class="hidden"></div><div id="wcDeep" class="hidden"></div>
       ${exs.map((e,k)=>`<div class="wc-ex"><div style="flex:1;min-width:0"><div class="zh wc-exz">${esc(e[0])}</div>${zh?`<div class="wc-expy">${esc(sentPy(e[0]))}</div>`:""}<div class="wc-exvi">${esc(e[1])}</div></div><button class="wc-spk" data-ex="${k}" title="Nghe câu">🔊</button></div>`).join("")}
       <button class="wc-rec" id="wcRec">🎤 Ghi âm</button><button class="btn sm hidden" id="wcMine" style="width:100%;margin-top:6px">▶ Nghe giọng tôi</button><div class="muted" id="wcMsg" style="font-size:12px;margin-top:6px;text-align:center"></div>
@@ -2771,7 +2774,8 @@ function rBookTest(el){
     ${S.items.map((it,i)=>{ const id=si+"-"+i;
       if(S.type==="mcq") return `<div class="ex-item tb-it" data-id="${id}"><div><b>${i+1}.</b> <span class="zh">${esc(it.q)}</span></div><div class="opts">${it.o.map((o,k)=>`<button class="btn sm opt zh" data-q="${id}" data-k="${k}">${"ABCDEF"[k]}. ${esc(o)}</button>`).join("")}</div><div class="tb-ex hidden"></div></div>`;
       if(S.type==="bank") return `<div class="ex-item tb-it" data-id="${id}">${S.passage?`<div><b>Chỗ trống ${esc(it.q)}</b></div>`:`<div class="zh tb-q"><b>${i+1}.</b> ${blankHtml(it.q,id,it.bi)}</div>`}<div class="opts">${S.bank.map(b=>`<button class="btn sm opt" data-q="${id}" data-k="${esc(b.k)}">${esc(b.k)}${S.passage?"":` <span class="zh">${esc(b.w)}</span>`}</button>`).join("")}</div><div class="tb-ex hidden"></div></div>`;
-      const isQ=/[？?]/.test(it.q)||[...it.q].length>6; return `<div class="ex-item tb-it">${isQ?`<div><b>${i+1}.</b> <span class="zh" style="font-size:18px">${esc(it.q)}</span> <button class="btn sm" data-sayq="${esc(it.q)}">🔊</button></div><textarea class="zh tb-open" rows="2" placeholder="Gõ câu trả lời bằng tiếng Trung…"></textarea>`:`<div><b>${i+1}.</b> Từ: <b class="zh" style="font-size:19px">${esc(it.q)}</b></div><textarea class="zh tb-open" rows="2" placeholder="Đặt một câu với từ “${esc(it.q)}”…"></textarea>`}${it.a?`<button class="btn sm" data-hint>💡 Xem gợi ý</button><div class="tb-hint zh hidden">${esc(it.a)}</div>`:""}</div>`; }).join("")}</div>`).join("")+
+      if(S.cue) return `<div class="ex-item tb-it"><div><b>${i+1}.</b> <span class="zh" style="font-size:18px">${esc(it.q)}</span></div><textarea class="zh tb-open" rows="2" placeholder="Viết câu bằng ${esc(LANGS[CUR_LANG].name.replace(/^T/,"t"))}…"></textarea>${it.a?`<button class="btn sm" data-hint>💡 Xem đáp án gợi ý</button><div class="tb-hint zh hidden">${esc(it.a)}</div>`:""}</div>`;
+      const isQ=/[？?]/.test(it.q)||[...it.q].length>6; return `<div class="ex-item tb-it">${isQ?`<div><b>${i+1}.</b> <span class="zh" style="font-size:18px">${esc(it.q)}</span> <button class="btn sm" data-sayq="${esc(it.q)}">🔊</button></div><textarea class="zh tb-open" rows="2" placeholder="Gõ câu trả lời bằng ${esc(LANGS[CUR_LANG].name.replace(/^T/,"t"))}…"></textarea>`:`<div><b>${i+1}.</b> Từ: <b class="zh" style="font-size:19px">${esc(it.q)}</b></div><textarea class="zh tb-open" rows="2" placeholder="Đặt một câu với từ “${esc(it.q)}”…"></textarea>`}${it.a?`<button class="btn sm" data-hint>💡 Xem gợi ý</button><div class="tb-hint zh hidden">${esc(it.a)}</div>`:""}</div>`; }).join("")}</div>`).join("")+
     `<button class="btn p" id="tbSub">📤 Nộp bài</button><div id="fb"></div>`;
   const item=id=>{ const [a,b]=id.split("-").map(Number); return [T[a],T[a].items[b]]; };
   el.querySelectorAll(".opt[data-q]").forEach(b=>b.onclick=()=>{ if(done) return; const id=b.dataset.q; ans[id]=b.dataset.k;
@@ -10491,8 +10495,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
