@@ -238,7 +238,7 @@ table.t td{padding:8px;border-bottom:1px solid #edf2f8;vertical-align:middle}
 .fb.no{background:var(--no-soft);color:var(--no)}
 rt{font-family:"Be Vietnam Pro",sans-serif;font-size:.55em;color:var(--p-dark);font-weight:500}
 body.nopy rt{visibility:hidden}
-.rom{font-size:12.5px;line-height:1.35;color:#5b7a99;font-style:italic;font-family:"Be Vietnam Pro","Segoe UI",Arial,sans-serif;font-weight:500;margin-top:2px}button .rom,.opt .rom,.mi .rom{display:block;font-size:11px;margin-top:1px}.wt-kana{display:block;font-size:11px;opacity:.8;font-style:normal}body.nopy .rom{display:none!important}
+.rom{font-size:12.5px;line-height:1.35;color:#5b7a99;font-style:italic;font-family:"Be Vietnam Pro","Segoe UI",Arial,sans-serif;font-weight:500;margin-top:2px}button .rom,.opt .rom,.mi .rom,.tok .rom{display:block;font-size:11px;margin-top:1px}.wt-kana{display:block;font-size:11px;opacity:.8;font-style:normal}body.nopy .rom{display:none!important}
 .w{cursor:pointer;border-radius:6px;padding:0 1px;transition:background .15s}
 .w:hover{background:#fff3c4}
 .w.cur{background:#ffe08a}
@@ -1326,7 +1326,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2400);}
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
-const isPunct=t=>/^[，。！？、,.!?：:；;“”"'（）()…\s\-—·]+$/.test(t);
+const isPunct=t=>/^[，。！？、,.!?：:；;“”"'（）()…\s\-—·\[\]［］【】〈〉「」『』]+$/.test(t);
 const hasHan=t=>/[\u3400-\u9fff]/.test(t);
 const isWordy=t=>/\p{L}/u.test(t);
 const CJK=l=>l==="zh"||l==="ja";
@@ -2254,9 +2254,10 @@ const JA_NOSPLIT=new Set(["とても","いつも","でも","こども","くだ�
 function jaWordRom(kana){ const k=hira(kana); if(!k) return ""; if(/[\u30a0-\u30ff]$/.test(kana)&&!/[\u3040-\u309f]/.test(kana.slice(-1))){ const mm=String(kana).match(/^(.*?)([\u3040-\u309f]*)$/); if(mm&&mm[2]&&/[\u30a0-\u30ff]/.test(mm[1])) return kana2rom(mm[1])+" "+jaWordRom(mm[2]); return kana2rom(k); }
   if(!JA_NOSPLIT.has(k)&&[...k].length>=3){
     let q=k.match(/^(.*(?:です|でした|ます|ません|ました|ましょう|でしょう|ませんでした))(か|ね|よ|かね|よね)$/); if(q) return jaWordRom(String(kana).slice(0,q[1].length))+" "+kana2rom(q[2]);
-    let m=k.match(/^(.+?)(でした|でしょう|です|じゃありません|じゃ ありません)$/); if(m&&[...m[1]].length>=1) return jaWordRom(String(kana).slice(0,m[1].length))+" "+kana2rom(m[2]);
+    let m=k.match(/^(.+?)(でした|でしょう|です|じゃありません|じゃ ありません|じゃ|では)$/); if(m&&[...m[1]].length>=1) return jaWordRom(String(kana).slice(0,m[1].length))+" "+jaWordRom(m[2]);
     m=k.match(/^(.+?)(から|まで|より|は|を|へ|が|の|に|で|と|も)$/); if(m&&[...m[1]].length>=2&&!/っ$/.test(m[1])&&!JA_NOSPLIT.has(k)&&/^[\u3040-\u309f]/.test(String(kana).slice(m[1].length))){ const pr={"は":"wa","を":"o","へ":"e"}[m[2]]||kana2rom(m[2]); return kana2rom(m[1])+" "+pr; } }
   { const q=k.match(/^(です|でした|ます|ません|ました|ましょう|でしょう)(か|ね|よ)$/); if(q) return kana2rom(q[1])+" "+kana2rom(q[2]); }
+  { const W={"では":"dewa","には":"niwa","とは":"towa","へは":"ewa","こんにちは":"konnichiwa","こんばんは":"konbanwa","じゃ":"ja"}; if(W[k]) return W[k]; }
   if(k==="は") return "wa"; if(k==="を") return "o"; if(k==="へ") return "e";
   return kana2rom(k); }
 const isLatin=t=>/^[\x20-\x7eāīūēōĀĪŪĒŌ'’()~\-]+$/.test(t);
@@ -2765,7 +2766,7 @@ function rOrder(el){
       `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><div class="seg"><button data-om="tap" class="${typing?"":"on"}">👆 Bấm chọn từ</button><button data-om="type" class="${typing?"on":""}">⌨️ Tự đánh máy</button></div><span class="muted" style="font-size:13px">Đúng ${nOk}/${Q.length}</span></div>
       <div class="dict-dots" style="margin:10px 0">${Q.map((_,k)=>`<button data-qk="${k}" class="${k===qi?"on":""} ${res[k]==="ok"?"g":res[k]==="no"?"r":res[k]==="skip"?"y":""}">${k+1}</button>`).join("")}</div>
       <div class="muted">Câu ${qi+1}/${Q.length}${q.vi?` · Nghĩa: <b style="color:var(--ink)">${esc(q.vi)}</b>`:""}</div>
-      ${typing?`<div class="chips zh" style="justify-content:flex-start;margin:10px 0">${pool.filter(p=>isWordy(p.t)).map(p=>`<span class="tok" style="cursor:default">${esc(p.t)}</span>`).join("")}</div><input type="text" id="oIn" class="zh" autocomplete="off" placeholder="Gõ câu hoàn chỉnh vào đây…" style="width:100%;box-sizing:border-box;font-size:20px;padding:10px 12px;border:2px solid var(--line);border-radius:14px">`
+      ${typing?`<div class="chips zh" style="justify-content:flex-start;margin:10px 0">${pool.filter(p=>isWordy(p.t)).map(p=>`<span class="tok" style="cursor:default">${esc(p.t)}${CUR_LANG==="ja"&&isWordy(p.t)?`<small class="rom">${esc(jaRomTok(p.t)||jaRom(p.t))}</small>`:""}</span>`).join("")}</div><input type="text" id="oIn" class="zh" autocomplete="off" placeholder="Gõ câu hoàn chỉnh vào đây…" style="width:100%;box-sizing:border-box;font-size:20px;padding:10px 12px;border:2px solid var(--line);border-radius:14px">`
         :`<div class="ans-line zh" id="al"></div><div class="chips zh" id="pool" style="justify-content:flex-start"></div>`}
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn p" id="ck">✔ Kiểm tra</button>${typing?"":`<button class="btn" id="rs">↺ Làm lại</button>`}<button class="btn" id="sh">👁 Xem đáp án</button><button class="btn" id="sk">${qi<Q.length-1?"Bỏ qua ⏭":"Kết thúc"}</button></div><div id="fb"></div>`;
     el.querySelectorAll("[data-om]").forEach(b=>b.onclick=()=>{ ORD_MODE=b.dataset.om; store.set("srt_ordmode",ORD_MODE); draw(); });
@@ -2784,8 +2785,8 @@ function rOrder(el){
       $("#ck").onclick=()=>{ const v=inp.value.trim(); if(!v){ toast("Hãy gõ câu trước"); return; } const ok=ordNorm(v)===ordNorm(q.t.join(CJK(CUR_LANG)?"":" ")); inp.style.borderColor=ok?"#2f9e6e":"#e5536b"; ok?good():bad(); };
       inp.onkeydown=e=>{ if(e.key==="Enter"&&!e.isComposing){ e.preventDefault(); $("#ck").click(); } };
       return; }
-    function paint(){ $("#al").innerHTML=ans.length?ans.map((p,k)=>`<button class="tok" data-k="${k}">${esc(p.t)}</button>`).join(""):'<span class="muted" style="font-size:14px">Câu của bạn sẽ hiện ở đây…</span>';
-      $("#pool").innerHTML=pool.map((p,k)=>`<button class="tok ${ans.includes(p)?"used":""}" data-p="${k}">${esc(p.t)}</button>`).join("");
+    function paint(){ $("#al").innerHTML=ans.length?ans.map((p,k)=>`<button class="tok" data-k="${k}">${esc(p.t)}${CUR_LANG==="ja"&&isWordy(p.t)?`<small class="rom">${esc(jaRomTok(p.t)||jaRom(p.t))}</small>`:""}</button>`).join(""):'<span class="muted" style="font-size:14px">Câu của bạn sẽ hiện ở đây…</span>';
+      $("#pool").innerHTML=pool.map((p,k)=>`<button class="tok ${ans.includes(p)?"used":""}" data-p="${k}">${esc(p.t)}${CUR_LANG==="ja"&&isWordy(p.t)?`<small class="rom">${esc(jaRomTok(p.t)||jaRom(p.t))}</small>`:""}</button>`).join("");
       $("#al").querySelectorAll(".tok").forEach(b=>b.onclick=()=>{ ans.splice(+b.dataset.k,1); paint(); });
       $("#pool").querySelectorAll(".tok").forEach(b=>b.onclick=()=>{ const p=pool[+b.dataset.p]; if(!ans.includes(p)){ ans.push(p); if(isWordy(p.t)) say(p.t); } paint(); }); }
     paint();
@@ -2803,7 +2804,7 @@ function rMatch(el){
   el.innerHTML=guide("Bấm một câu bên trái, rồi bấm câu đáp phù hợp bên phải.")+`<div class="match"><div class="col" id="cl"></div><div class="col" id="cr"></div></div><div style="margin-top:12px"><button class="btn p" id="ck">✔ Kiểm tra</button> <button class="btn" id="rs">↺ Làm lại</button></div><div id="fb"></div>`;
   function paint(st){
     $("#cl").innerHTML=L.map(l=>{ const c=pair[l.i]!=null?colors[l.i]:null; return `<button class="mi zh ${selL===l.i?"sel":""} ${st?(R[pair[l.i]]&&R[pair[l.i]].i===l.i?"ok":"no"):""}" data-l="${l.i}">${c?`<span class="tagn" style="background:${c}">${l.i+1}</span>`:""}${esc(l.t)}${CUR_LANG==="ja"?`<small class="rom">${esc(jaRom(l.t))}</small>`:""}</button>`; }).join("");
-    $("#cr").innerHTML=R.map((r,k)=>{ const li=Object.keys(pair).find(x=>pair[x]===k); return `<button class="mi zh" data-r="${k}">${li!=null?`<span class="tagn" style="background:${colors[li]}">${+li+1}</span>`:""}${esc(r.t)}</button>`; }).join("");
+    $("#cr").innerHTML=R.map((r,k)=>{ const li=Object.keys(pair).find(x=>pair[x]===k); return `<button class="mi zh" data-r="${k}">${li!=null?`<span class="tagn" style="background:${colors[li]}">${+li+1}</span>`:""}${esc(r.t)}${CUR_LANG==="ja"?`<small class="rom">${esc(jaRom(r.t))}</small>`:""}</button>`; }).join("");
     $("#cl").querySelectorAll(".mi").forEach(b=>b.onclick=()=>{ selL=+b.dataset.l; say(L[selL].t); paint(); });
     $("#cr").querySelectorAll(".mi").forEach(b=>b.onclick=()=>{ const k=+b.dataset.r; say(R[k].t); if(selL==null){ toast("Chọn câu bên trái trước"); return; } Object.keys(pair).forEach(x=>{ if(pair[x]===k) delete pair[x]; }); pair[selL]=k; selL=null; paint(); });
   }
@@ -10572,8 +10573,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
