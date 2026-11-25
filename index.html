@@ -8216,7 +8216,7 @@ const FR_CAT=[
 const FR_ROLE={Camille:"Camille",Agent:"Nhân viên",Guichetier:"Nhân viên bán vé",Parisien:"Người Paris",Parisienne:"Cô gái Paris",Touriste:"Du khách",Peintre:"Họa sĩ","Bénévole":"Tình nguyện viên",Capitaine:"Thuyền trưởng",Guide:"Hướng dẫn viên",Vendeuse:"Cô bán hàng",Vendeur:"Người bán hàng",Lillois:"Người Lille",Serveur:"Bồi bàn",Serveuse:"Cô phục vụ","Jardinière":"Người làm vườn",Randonneur:"Người đi bộ đường dài",Chauffeur:"Tài xế",Malouin:"Người Saint-Malo","Crêpière":"Cô làm bánh crêpe",Machiniste:"Người điều khiển máy",Bordelais:"Người Bordeaux","Pâtissier":"Thợ làm bánh",Sauveteur:"Nhân viên cứu hộ","Ostréiculteur":"Người nuôi hàu",Moniteur:"Huấn luyện viên","Boulangère":"Cô bán bánh mì",Animateur:"Hướng dẫn viên","Toulousain":"Người Toulouse",Chevalier:"Hiệp sĩ",Villageois:"Dân làng",Fromager:"Người bán phô mai",Marseillais:"Người Marseille",Avignonnaise:"Cô gái Avignon",Agricultrice:"Nông dân",Cannois:"Người Cannes","Niçoise":"Cô gái Nice",Lyonnais:"Người Lyon",Patron:"Chủ quán",Loueur:"Người cho thuê xe","Alpiniste":"Người leo núi",Dijonnais:"Người Dijon",Caviste:"Người hầm rượu",Batelier:"Người lái thuyền",Colmarien:"Người Colmar",Strasbourgeois:"Người Strasbourg",Passant:"Người đi đường","Agent RATP":"Nhân viên tàu điện",Commerçant:"Chủ cửa hàng","Réceptionniste":"Lễ tân",Propriétaire:"Chủ nhà nghỉ",Marchand:"Người bán sạp",Habitant:"Người dân",Artisan:"Nghệ nhân","Grand-mère":"Bà cụ","Grand-père":"Ông cụ","Étudiant":"Sinh viên",Enfant:"Em nhỏ",Monsieur:"Quý ông"};
 const FR_UI={"地图":"Carte","旅程":"Itinéraire","护照":"Passeport","明信片":"Cartes postales","旅行手册":"Guide de conversation","印章":"Tampons","金印":"Sceaux d'or","探索":"Explorer","怎么玩":"Comment jouer","选句子":"Choisir","听力":"Écouter","连词成句":"Remettre en ordre","填空":"Compléter","选词填空":"Compléter","选择你要说的话":"Choisis ce que tu veux dire","听一听，选出正确的意思。":"Écoute et choisis le bon sens.","再听":"Réécouter","慢速":"Lentement","重来":"Recommencer","检查":"Vérifier","提示":"Indice","看答案":"Voir la réponse","这是答案，大声读一读！":"Voici la réponse, lis-la à voix haute !","对了！":"Bravo !","下一句":"Suivant","完成":"Terminé","去景点":"Visiter","考考你":"Quiz","太棒了！":"Génial !","不对哦。":"Pas tout à fait.","景点：":"Site :","盖章啦！":"Tamponné !","下一站":"Étape suivante","再玩":"Rejouer"};
 /* Khoảng trắng không ngắt trước dấu câu kiểu Pháp, để dấu không tách thành ô chữ riêng */
-(function(){ const fx=t=>typeof t==="string"?t.replace(/ ([?!:;»])/g," $1").replace(/« /g,"« "):t;
+(function(){ const fx=t=>typeof t==="string"?t.replace(/ ([?!:;»])/g," $1").replace(/« /g,"« "):t;
   FR_TRIP.forEach(s=>{ s.L=s.L.map(l=>l.map(fx)); s.pc=s.pc.map(fx); });
   FR_CAT.forEach(c=>{ c.V=c.V.map(v=>v.map(l=>l.map(fx))); }); })();
 
@@ -10837,8 +10837,8 @@ async function renderRoles(p){
    Điền 2 dòng dưới bằng thông tin trong Supabase → Project Settings → API
    ===================================================================== */
 // ===== ĐIỀN THÔNG TIN SUPABASE VÀO 2 DÒNG DƯỚI (dán vào GIỮA 2 dấu ngoặc kép) =====
-let SUPABASE_URL = "";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
-let SUPABASE_ANON_KEY = "";   // ← khóa anon public (KHÔNG dùng khóa service_role)
+let SUPABASE_URL = "https://artmgyujqygvahvqrwap.supabase.co";        // ← Project URL, ví dụ: "https://abcdxyz.supabase.co"
+let SUPABASE_ANON_KEY = "sb_publishable_UmhjPkLDtFe8Rjg2HlYYlg_GrpHF5pT";   // ← khóa anon public (KHÔNG dùng khóa service_role)
 // (Nếu dùng biến môi trường trên Vercel thì để trống 2 dòng trên, web tự đọc từ config.js)
 if(window.SRT_CONFIG){ SUPABASE_URL = SUPABASE_URL || SRT_CONFIG.url || ""; SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || SRT_CONFIG.anonKey || ""; }
 const SB_ON = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && !window.claude;
